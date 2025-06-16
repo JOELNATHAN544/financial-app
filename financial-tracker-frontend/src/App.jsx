@@ -10,22 +10,6 @@ function App() {
   const [editingTransaction, setEditingTransaction] = useState(null)
   const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken')) // Initialize from localStorage
 
-  // New state for theme
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
-
   useEffect(() => {
     if (jwtToken) {
       fetchTransactions()
@@ -153,7 +137,7 @@ function App() {
   }
 
   return (
-    <Layout handleLogout={handleLogout} currentTheme={theme} toggleTheme={toggleTheme}>
+    <Layout>
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h2>
         <TransactionForm
@@ -208,6 +192,12 @@ function App() {
             </table>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+        >
+          Logout
+        </button>
       </div>
     </Layout>
   )
