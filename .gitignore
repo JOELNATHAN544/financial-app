@@ -19,6 +19,7 @@ replay_pid*
 node_modules/
 /financial-tracker-frontend/dist
 /financial-tracker-frontend/build
+/financial-tracker-frontend/.vite/
 .DS_Store
 .env.local
 .env.development.local
