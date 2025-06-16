@@ -100,7 +100,7 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="usedFor" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="usedFor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Description
         </label>
         <input
@@ -109,8 +109,9 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
           name="usedFor"
           value={formData.usedFor}
           onChange={handleChange}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-            errors.usedFor ? 'border-red-500' : ''
+          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm
+            dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
+            ${errors.usedFor ? 'border-red-500' : ''
           }`}
           placeholder="What was this transaction for?"
         />
@@ -121,7 +122,7 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="credit" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="credit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Credit Amount
           </label>
           <input
@@ -132,8 +133,9 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
             onChange={handleChange}
             step="0.01"
             min="0"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-              errors.credit ? 'border-red-500' : ''
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm
+              dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
+              ${errors.credit ? 'border-red-500' : ''
             }`}
             placeholder="0.00"
           />
@@ -143,7 +145,7 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
         </div>
 
         <div>
-          <label htmlFor="debit" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="debit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Debit Amount
           </label>
           <input
@@ -154,8 +156,9 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
             onChange={handleChange}
             step="0.01"
             min="0"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-              errors.debit ? 'border-red-500' : ''
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm
+              dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
+              ${errors.debit ? 'border-red-500' : ''
             }`}
             placeholder="0.00"
           />
@@ -176,7 +179,7 @@ const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }
       <button
         type="submit"
         disabled={isSubmitting}
-        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 ${
           isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
