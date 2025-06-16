@@ -3,6 +3,7 @@ package com.example.financialtracker.service;
 import com.example.financialtracker.model.Transaction;
 import com.example.financialtracker.model.MonthlySummary;
 import com.example.financialtracker.model.FinalizationLog;
+import com.example.financialtracker.model.User;
 import com.example.financialtracker.repository.TransactionRepository;
 import com.example.financialtracker.repository.MonthlySummaryRepository;
 import com.example.financialtracker.repository.FinalizationLogRepository;
@@ -29,27 +30,30 @@ public class TransactionServiceImpl implements TransactionService {
     private FinalizationLogRepository finalizationLogRepository;
 
     @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public List<Transaction> getAllTransactions(User user) {
+        return transactionRepository.findAllByUser(user);
     }
 
     @Override
     @Transactional
-    public Transaction createTransaction(Transaction transaction) {
+    public Transaction createTransaction(Transaction transaction, User user) {
         // Set the current date if not provided
         if (transaction.getDate() == null) {
             transaction.setDate(LocalDate.now());
         }
 
+        // Set the user for the transaction
+        transaction.setUser(user);
+
         // Get the last transaction or monthly summary to determine the starting balance
         BigDecimal startingBalance = BigDecimal.ZERO;
-        Optional<Transaction> lastTransaction = transactionRepository.findTopByOrderByDateDesc();
+        Optional<Transaction> lastTransaction = transactionRepository.findTopByUserOrderByDateDesc(user);
         
         if (lastTransaction.isPresent()) {
             startingBalance = lastTransaction.get().getBalance();
         } else {
-            // If no transactions exist, get the last month's closing balance
-            Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthYearDesc();
+            // If no transactions exist, get the last month's closing balance for this user
+            Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByUserOrderByMonthYearDesc(user);
             if (lastSummary.isPresent()) {
                 startingBalance = lastSummary.get().getClosingBalance();
             }
@@ -69,65 +73,70 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Optional<Transaction> getTransactionById(Long id) {
-        return transactionRepository.findById(id);
+    public Optional<Transaction> getTransactionById(Long id, User user) {
+        return transactionRepository.findByIdAndUser(id, user);
     }
 
     @Override
-    public Transaction updateTransaction(Long id, Transaction transactionDetails) {
-        return transactionRepository.findById(id)
+    public Transaction updateTransaction(Long id, Transaction transactionDetails, User user) {
+        return transactionRepository.findByIdAndUser(id, user)
                 .map(transaction -> {
                     transaction.setDate(transactionDetails.getDate());
                     transaction.setUsedFor(transactionDetails.getUsedFor());
                     transaction.setCredit(transactionDetails.getCredit());
                     transaction.setDebit(transactionDetails.getDebit());
-                    // Balance will be recalculated when we implement more sophisticated update logic
-                    // For now, let's just save the updated fields
+                    // No need to set balance here, it will be recalculated when the next transaction is added or can be updated explicitly if needed.
+                    // Ensure the user is set for the updated transaction as well
+                    transaction.setUser(user);
                     return transactionRepository.save(transaction);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
     }
 
     @Override
-    public void deleteTransaction(Long id) {
-        transactionRepository.deleteById(id);
+    public void deleteTransaction(Long id, User user) {
+        transactionRepository.deleteByIdAndUser(id, user);
     }
 
     @Override
     @Transactional
-    public MonthlySummary finalizeMonth() {
-        // Get the last transaction to get the final balance
-        Optional<Transaction> lastTransaction = transactionRepository.findTopByOrderByDateDesc();
+    public MonthlySummary finalizeMonth(User user) {
+        // Get the last transaction to get the final balance for this user
+        Optional<Transaction> lastTransaction = transactionRepository.findTopByUserOrderByDateDesc(user);
         if (lastTransaction.isEmpty()) {
-            // If no transactions exist, return a new MonthlySummary or null, depending on desired behavior
-            // For now, let's return a new empty MonthlySummary
-            return new MonthlySummary();
+            // If no transactions exist for this user, return a new MonthlySummary
+            MonthlySummary emptySummary = new MonthlySummary();
+            emptySummary.setUser(user);
+            emptySummary.setMonthYear(YearMonth.now()); // Or use an appropriate YearMonth
+            emptySummary.setClosingBalance(BigDecimal.ZERO);
+            return monthlySummaryRepository.save(emptySummary);
         }
 
         Transaction transaction = lastTransaction.get();
         BigDecimal finalBalance = transaction.getBalance();
 
-        // Create and save the monthly summary
+        // Create and save the monthly summary for this user
         MonthlySummary summary = new MonthlySummary();
         summary.setMonthYear(YearMonth.from(transaction.getDate()));
         summary.setClosingBalance(finalBalance);
+        summary.setUser(user);
         MonthlySummary savedSummary = monthlySummaryRepository.save(summary);
 
-        // Clear all transactions
-        transactionRepository.deleteAll();
+        // Clear all transactions for this user
+        transactionRepository.deleteAllByUser(user);
 
         return savedSummary;
     }
 
     @Override
-    public BigDecimal getCurrentBalance() {
-        Optional<Transaction> lastTransaction = transactionRepository.findTopByOrderByDateDesc();
+    public BigDecimal getCurrentBalance(User user) {
+        Optional<Transaction> lastTransaction = transactionRepository.findTopByUserOrderByDateDesc(user);
         if (lastTransaction.isPresent()) {
             return lastTransaction.get().getBalance();
         }
         
-        // If no transactions exist, get the last month's closing balance
-        Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthYearDesc();
+        // If no transactions exist, get the last month's closing balance for this user
+        Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByUserOrderByMonthYearDesc(user);
         if (lastSummary.isPresent()) {
             return lastSummary.get().getClosingBalance();
         }
@@ -136,7 +145,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<FinalizationLog> getFinalizationHistory() {
-        return finalizationLogRepository.findAllByOrderByFinalizationDateDesc();
+    public List<FinalizationLog> getFinalizationHistory(User user) {
+        return finalizationLogRepository.findAllByUserOrderByFinalizationDateDesc(user);
     }
 } 

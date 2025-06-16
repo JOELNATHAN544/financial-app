@@ -1,6 +1,7 @@
 import React from 'react';
 
 const TransactionList = ({ transactions, onEdit, onDelete }) => {
+  console.log('Transactions received in TransactionList.jsx:', transactions);
   if (!transactions.length) {
     return (
       <div className="text-center py-8 text-gray-500">

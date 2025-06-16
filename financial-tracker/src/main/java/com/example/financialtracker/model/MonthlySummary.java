@@ -19,5 +19,9 @@ public class MonthlySummary {
     @Column(nullable = false)
     private BigDecimal closingBalance;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     // You can add more fields here later if needed, e.g., totalCredit, totalDebit for the month
 } 

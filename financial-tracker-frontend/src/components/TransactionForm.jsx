@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const TransactionForm = ({ onSubmit }) => {
+const TransactionForm = ({ onSubmit, editingTransaction, setEditingTransaction }) => {
   const [formData, setFormData] = useState({
     usedFor: '',
     credit: '',
@@ -8,6 +8,25 @@ const TransactionForm = ({ onSubmit }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Effect to populate form when editingTransaction changes
+  useEffect(() => {
+    if (editingTransaction) {
+      setFormData({
+        usedFor: editingTransaction.usedFor || '',
+        credit: editingTransaction.credit ? String(editingTransaction.credit) : '',
+        debit: editingTransaction.debit ? String(editingTransaction.debit) : '',
+      });
+    } else {
+      // Clear form if no transaction is being edited
+      setFormData({
+        usedFor: '',
+        credit: '',
+        debit: '',
+      });
+    }
+    setErrors({}); // Clear errors when editing state changes
+  }, [editingTransaction]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -67,6 +86,10 @@ const TransactionForm = ({ onSubmit }) => {
         debit: '',
       });
       setErrors({});
+      // Clear editing state if applicable
+      if (editingTransaction) {
+        setEditingTransaction(null);
+      }
     } catch (error) {
       setErrors({ submit: error.message });
     } finally {
@@ -157,7 +180,9 @@ const TransactionForm = ({ onSubmit }) => {
           isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        {isSubmitting ? 'Adding Transaction...' : 'Add Transaction'}
+        {isSubmitting
+          ? (editingTransaction ? 'Updating Transaction...' : 'Adding Transaction...')
+          : (editingTransaction ? 'Update Transaction' : 'Add Transaction')}
       </button>
     </form>
   );

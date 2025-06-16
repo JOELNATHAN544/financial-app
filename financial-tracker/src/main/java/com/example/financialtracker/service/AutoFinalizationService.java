@@ -4,6 +4,7 @@ import com.example.financialtracker.model.SystemStatus;
 import com.example.financialtracker.model.FinalizationLog;
 import com.example.financialtracker.repository.SystemStatusRepository;
 import com.example.financialtracker.repository.FinalizationLogRepository;
+import com.example.financialtracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ public class AutoFinalizationService {
     @Autowired
     private FinalizationLogRepository finalizationLogRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Scheduled(cron = "0 0 0 * * ?") // Run at midnight every day
     @Transactional
     public void checkAndFinalizeMonth() {
@@ -40,32 +44,39 @@ public class AutoFinalizationService {
              lastFinalization.getMonth() != now.getMonth() || 
              lastFinalization.getYear() != now.getYear())) {
             
-            try {
-                // Get the closing balance before finalizing
-                BigDecimal closingBalance = transactionService.getCurrentBalance();
-                
-                // Finalize the month
-                transactionService.finalizeMonth();
-                
-                // Create and save the finalization log
-                FinalizationLog log = new FinalizationLog();
-                log.setFinalizationDate(now);
-                log.setMonth(now.getMonthValue());
-                log.setYear(now.getYear());
-                log.setClosingBalance(closingBalance);
-                log.setAutomatic(true);
-                finalizationLogRepository.save(log);
-                
-                // Update last finalization time
-                status.setLastFinalization(now);
-                systemStatusRepository.save(status);
+            // Iterate over all users and finalize month for each
+            userRepository.findAll().forEach(user -> {
+                try {
+                    // Get the closing balance before finalizing
+                    BigDecimal closingBalance = transactionService.getCurrentBalance(user);
+                    
+                    // Finalize the month
+                    transactionService.finalizeMonth(user);
+                    
+                    // Create and save the finalization log for the specific user
+                    FinalizationLog log = new FinalizationLog();
+                    log.setFinalizationDate(now);
+                    log.setMonth(now.getMonthValue());
+                    log.setYear(now.getYear());
+                    log.setClosingBalance(closingBalance);
+                    log.setAutomatic(true);
+                    log.setUser(user); // Associate the log with the user
+                    finalizationLogRepository.save(log);
+                    
+                    logger.info("Month automatically finalized for user {} (ID: {}) for {}/{} with closing balance: {}", 
+                        user.getUsername(), user.getId(), now.getMonthValue(), now.getYear(), closingBalance);
+                } catch (Exception e) {
+                    logger.error("Error during automatic month finalization for user {} (ID: {}): {}", 
+                        user.getUsername(), user.getId(), e.getMessage(), e);
+                }
+            });
+            
+            // Update last finalization time after all users have been processed
+            status.setLastFinalization(now);
+            systemStatusRepository.save(status);
 
-                // Log the successful finalization
-                logger.info("Month automatically finalized for {}/{} with closing balance: {}", 
-                    now.getMonthValue(), now.getYear(), closingBalance);
-            } catch (Exception e) {
-                logger.error("Error during automatic month finalization", e);
-            }
+        } else {
+            logger.info("Skipping automatic month finalization. Current date: {}, Last finalization: {}", now.toLocalDate(), lastFinalization != null ? lastFinalization.toLocalDate() : "N/A");
         }
     }
 
@@ -73,7 +84,7 @@ public class AutoFinalizationService {
         SystemStatus status = systemStatusRepository.findFirstByOrderByIdAsc();
         if (status == null) {
             status = new SystemStatus();
-            status.setLastFinalization(LocalDateTime.now());
+            status.setLastFinalization(LocalDateTime.now()); // Set initial last finalization to now
             status = systemStatusRepository.save(status);
         }
         return status;

@@ -26,4 +26,8 @@ public class FinalizationLog {
 
     @Column(name = "is_automatic", nullable = false)
     private boolean automatic;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 } 
