@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TransactionList = ({ transactions }) => {
+const TransactionList = ({ transactions, onEdit, onDelete }) => {
   if (!transactions.length) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -29,6 +29,9 @@ const TransactionList = ({ transactions }) => {
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Balance
             </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -40,17 +43,31 @@ const TransactionList = ({ transactions }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(transaction.date).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 text-sm text-gray-900">
                   {transaction.usedFor}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                  {transaction.credit ? `${Number(transaction.credit).toFixed(2)} FCFA` : '-'}
+                  {transaction.credit ? `${Number(transaction.credit).toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600">
-                  {transaction.debit ? `${Number(transaction.debit).toFixed(2)} FCFA` : '-'}
+                  {transaction.debit ? `${Number(transaction.debit).toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                  {!isNaN(displayBalance) ? `${displayBalance.toFixed(2)} FCFA` : '-'}
+                  {!isNaN(displayBalance) ? `${displayBalance.toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={() => onEdit(transaction)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-4"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => onDelete(transaction.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             );
