@@ -9,6 +9,7 @@ function App() {
   const [finalizationHistory, setFinalizationHistory] = useState([])
   const [editingTransaction, setEditingTransaction] = useState(null)
   const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken')) // Initialize from localStorage
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light'); // New: Theme state
 
   useEffect(() => {
     if (jwtToken) {
@@ -16,6 +17,16 @@ function App() {
       fetchFinalizationHistory()
     }
   }, [jwtToken]) // Depend on jwtToken
+
+  // New: Effect to apply theme class to body and save to localStorage
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme); // Use data-theme attribute
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   const fetchTransactions = async () => {
     try {
@@ -137,7 +148,7 @@ function App() {
   }
 
   return (
-    <Layout>
+    <Layout onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h2>
         <TransactionForm
@@ -192,12 +203,6 @@ function App() {
             </table>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-        >
-          Logout
-        </button>
       </div>
     </Layout>
   )
