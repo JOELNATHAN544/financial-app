@@ -11,5 +11,4 @@ import java.util.Optional;
 public interface MonthlySummaryRepository extends JpaRepository<MonthlySummary, Long> {
     Optional<MonthlySummary> findByMonthYear(YearMonth monthYear);
     Optional<MonthlySummary> findTopByOrderByMonthYearDesc();
-    Optional<MonthlySummary> findTopByOrderByMonthDescYearDesc();
 } 

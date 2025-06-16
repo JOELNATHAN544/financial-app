@@ -13,7 +13,7 @@ public interface TransactionService {
     Optional<Transaction> getTransactionById(Long id);
     Transaction updateTransaction(Long id, Transaction transaction);
     void deleteTransaction(Long id);
-    void finalizeMonth();
+    MonthlySummary finalizeMonth();
     BigDecimal getCurrentBalance();
     List<FinalizationLog> getFinalizationHistory();
 } 

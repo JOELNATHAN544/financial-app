@@ -49,7 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
             startingBalance = lastTransaction.get().getBalance();
         } else {
             // If no transactions exist, get the last month's closing balance
-            Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthDescYearDesc();
+            Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthYearDesc();
             if (lastSummary.isPresent()) {
                 startingBalance = lastSummary.get().getClosingBalance();
             }
@@ -95,11 +95,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void finalizeMonth() {
+    public MonthlySummary finalizeMonth() {
         // Get the last transaction to get the final balance
         Optional<Transaction> lastTransaction = transactionRepository.findTopByOrderByDateDesc();
         if (lastTransaction.isEmpty()) {
-            return;
+            // If no transactions exist, return a new MonthlySummary or null, depending on desired behavior
+            // For now, let's return a new empty MonthlySummary
+            return new MonthlySummary();
         }
 
         Transaction transaction = lastTransaction.get();
@@ -109,10 +111,12 @@ public class TransactionServiceImpl implements TransactionService {
         MonthlySummary summary = new MonthlySummary();
         summary.setMonthYear(YearMonth.from(transaction.getDate()));
         summary.setClosingBalance(finalBalance);
-        monthlySummaryRepository.save(summary);
+        MonthlySummary savedSummary = monthlySummaryRepository.save(summary);
 
         // Clear all transactions
         transactionRepository.deleteAll();
+
+        return savedSummary;
     }
 
     @Override
@@ -123,7 +127,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
         
         // If no transactions exist, get the last month's closing balance
-        Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthDescYearDesc();
+        Optional<MonthlySummary> lastSummary = monthlySummaryRepository.findTopByOrderByMonthYearDesc();
         if (lastSummary.isPresent()) {
             return lastSummary.get().getClosingBalance();
         }
