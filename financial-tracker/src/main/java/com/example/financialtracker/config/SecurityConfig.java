@@ -84,7 +84,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Allow your frontend origin
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:5173", // Web frontend
+            "http://192.168.1.94:5173", // Web frontend via IP
+            "exp://192.168.1.94:8081", // Expo development server
+            "exp://localhost:8081" // Expo development server localhost
+        )); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
