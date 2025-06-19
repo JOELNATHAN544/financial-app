@@ -1,13 +1,68 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+import TransactionList from '../components/TransactionList';
 
-const DashboardScreen = ({ onLogout }) => {
+const DashboardScreen = ({ onLogout, jwtToken }) => {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetch('http://192.168.1.94:8082/api/transactions', {
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch transactions');
+        }
+        const data = await response.json();
+        console.log('Fetched transactions:', data); // Debug log for date issue
+        setTransactions(data);
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [jwtToken]);
+
+  const handleEdit = (transaction) => {
+    // TODO: Implement edit functionality (open modal or navigate to edit screen)
+    Alert.alert('Edit', `Edit transaction: ${transaction.usedFor}`);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://192.168.1.94:8082/api/transactions/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+      });
+      const text = await response.text();
+      console.log('Delete response:', response.status, text);
+      if (!response.ok) {
+        throw new Error('Failed to delete transaction');
+      }
+      // Refresh transactions
+      setTransactions(transactions.filter(t => t.id !== id));
+    } catch (error) {
+      Alert.alert('Delete Error', error.message);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -23,11 +78,11 @@ const DashboardScreen = ({ onLogout }) => {
           Your transactions and financial data will appear here.
         </Text>
         
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>
-            Dashboard features coming soon...
-          </Text>
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 40 }} />
+        ) : (
+          <TransactionList transactions={transactions} onEdit={handleEdit} onDelete={handleDelete} />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -66,8 +121,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   welcomeText: {
     fontSize: 20,
@@ -79,26 +132,8 @@ const styles = StyleSheet.create({
   subtitleText: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
     color: '#6b7280',
-  },
-  placeholder: {
-    backgroundColor: 'white',
-    padding: 40,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
   },
 });
 

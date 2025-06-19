@@ -11,17 +11,20 @@ const Stack = createStackNavigator();
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [jwtToken, setJwtToken] = useState(null);
 
   const handleLogin = (token) => {
     // Store the token (we'll implement proper storage later)
     console.log('Login successful, token:', token);
     setIsAuthenticated(true);
+    setJwtToken(token);
   };
 
   const handleLogout = () => {
     // Clear the token (we'll implement proper storage later)
     console.log('Logging out');
     setIsAuthenticated(false);
+    setJwtToken(null);
   };
 
   return (
@@ -46,7 +49,7 @@ export default function App() {
           // App screens
           <Stack.Screen name="Dashboard">
             {(props) => (
-              <DashboardScreen {...props} onLogout={handleLogout} />
+              <DashboardScreen {...props} onLogout={handleLogout} jwtToken={jwtToken} />
             )}
           </Stack.Screen>
         )}
