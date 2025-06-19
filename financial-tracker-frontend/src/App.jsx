@@ -30,7 +30,7 @@ function App() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/transactions', {
+      const response = await fetch('http://localhost:8082/api/transactions', {
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
         },
@@ -52,7 +52,7 @@ function App() {
 
   const fetchFinalizationHistory = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/transactions/finalization-history', {
+      const response = await fetch('http://localhost:8082/api/transactions/finalization-history', {
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
         },
@@ -79,13 +79,13 @@ function App() {
       };
 
       if (editingTransaction) {
-        response = await fetch(`http://localhost:8081/api/transactions/${editingTransaction.id}`, {
+        response = await fetch(`http://localhost:8082/api/transactions/${editingTransaction.id}`, {
           method: 'PUT',
           headers: headers,
           body: JSON.stringify(transactionData),
         })
       } else {
-        response = await fetch('http://localhost:8081/api/transactions', {
+        response = await fetch('http://localhost:8082/api/transactions', {
           method: 'POST',
           headers: headers,
           body: JSON.stringify(transactionData),
@@ -112,7 +112,7 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/transactions/${id}`, {
+      const response = await fetch(`http://localhost:8082/api/transactions/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
