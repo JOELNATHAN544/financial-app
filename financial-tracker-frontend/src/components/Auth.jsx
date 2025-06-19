@@ -10,7 +10,7 @@ function Auth({ onLogin }) {
     e.preventDefault();
     setError('');
 
-    const url = isLogin ? 'http://localhost:8081/api/auth/login' : 'http://localhost:8081/api/auth/register';
+    const url = isLogin ? 'http://localhost:8082/api/auth/login' : 'http://localhost:8082/api/auth/register';
     const method = 'POST';
 
     try {
