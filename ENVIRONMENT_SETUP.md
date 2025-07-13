@@ -15,10 +15,7 @@ The Financial Tracker application consists of three main components:
 
 **File**: `financial-tracker/.env`
 
-Copy the example file and customize it:
-```bash
-cp financial-tracker/env.example financial-tracker/.env
-```
+The `.env` file has been created with the following configuration:
 
 **Configuration Variables**:
 ```env
@@ -57,10 +54,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173,http://192.168.1.94:5173,exp://192.16
 
 **File**: `financial-tracker-frontend/.env`
 
-Copy the example file and customize it:
-```bash
-cp financial-tracker-frontend/env.example financial-tracker-frontend/.env
-```
+The `.env` file has been created with the following configuration:
 
 **Configuration Variables**:
 ```env
@@ -86,10 +80,7 @@ VITE_ENABLE_THEME_TOGGLE=true
 
 **File**: `financial-tracker-mobile/.env`
 
-Copy the example file and customize it:
-```bash
-cp financial-tracker-mobile/env.example financial-tracker-mobile/.env
-```
+The `.env` file has been created with the following configuration:
 
 **Configuration Variables**:
 ```env
@@ -126,24 +117,19 @@ EXPO_PUBLIC_APP_VERSION=1.0.0
 2. **Network Access**: Ensure your backend is accessible from your mobile device's network
 3. **Debug Logging**: Enable debug logging only in development
 
-## Quick Setup Commands
+## Environment Files Status
 
-```bash
-# Backend setup
-cd financial-tracker
-cp env.example .env
-# Edit .env with your database credentials
+✅ **All `.env` files have been created and are ready to use**
 
-# Frontend setup
-cd ../financial-tracker-frontend
-cp env.example .env
-# Edit .env with your backend URL
+The following `.env` files are now available:
+- `financial-tracker/.env` - Backend configuration
+- `financial-tracker-frontend/.env` - Frontend configuration  
+- `financial-tracker-mobile/.env` - Mobile configuration
 
-# Mobile setup
-cd ../financial-tracker-mobile
-cp env.example .env
-# Edit .env with your backend URL
-```
+### Security Note
+- `.env` files are **NOT tracked by Git** (they're in `.gitignore`)
+- Your actual configuration stays local and secure
+- You can edit these files directly with your specific configuration
 
 ## Troubleshooting
 
