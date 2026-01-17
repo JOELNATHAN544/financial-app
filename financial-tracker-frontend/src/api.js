@@ -20,10 +20,12 @@ const apiFetch = async (endpoint, options = {}) => {
         // If unauthorized, we might want to trigger a logout or refresh
         if (response.status === 401 || response.status === 403) {
             // Custom event or simple throw for handling in components
-            throw new Error('Unauthorized');
+            throw new Error('AUTH_UNAUTHORIZED');
         }
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+        const error = new Error(errorData.message || `Request failed with status ${response.status}`);
+        error.status = response.status;
+        throw error;
     }
 
     // Handle NO_CONTENT
