@@ -31,7 +31,7 @@ public class AuthController {
             }
 
             // Email format validation
-            if (!authRequest.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+            if (!authRequest.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("message", "Invalid email format");
                 return ResponseEntity.badRequest().body(errorResponse);
