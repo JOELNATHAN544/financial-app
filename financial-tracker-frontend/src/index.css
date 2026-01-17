@@ -35,8 +35,8 @@
   body {
     @apply m-0 min-h-screen transition-colors duration-500 bg-gray-50 text-gray-900;
   }
-}
 
-[data-theme="dark"] body {
-  @apply bg-gray-900 text-gray-100;
+  [data-theme="dark"] body {
+    @apply bg-gray-900 text-gray-100;
+  }
 }
