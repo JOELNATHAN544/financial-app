@@ -27,7 +27,10 @@ public class Transaction {
     @Column(nullable = false)
     private BigDecimal balance;
 
+    @Column(nullable = false)
+    private boolean finalized = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-} 
+}
