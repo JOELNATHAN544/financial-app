@@ -15,9 +15,12 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const currentBalance = transactions.length > 0
-    ? Number(transactions[0].balance)
-    : 0;
+  const latestTransaction = [...transactions].sort((a, b) => {
+    const dateCompare = new Date(b.date) - new Date(a.date);
+    return dateCompare !== 0 ? dateCompare : b.id - a.id;
+  })[0];
+
+  const currentBalance = latestTransaction ? Number(latestTransaction.balance) : 0;
 
   const stats = transactions.reduce((acc, t) => {
     const date = new Date(t.date);
@@ -47,7 +50,7 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/api/transactions/${id}`, jwtToken);
-      setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(prev => prev.filter(t => t.id !== id));
     } catch (error) {
       Alert.alert('Delete Error', error.message);
     }
