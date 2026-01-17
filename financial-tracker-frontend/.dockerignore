@@ -4,5 +4,4 @@ dist
 .gitignore
 *.md
 Dockerfile
-nginx.conf
 .env*
