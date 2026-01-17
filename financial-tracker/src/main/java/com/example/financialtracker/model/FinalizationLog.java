@@ -1,12 +1,10 @@
 package com.example.financialtracker.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Entity
-@Data
 public class FinalizationLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +28,60 @@ public class FinalizationLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-} 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getFinalizationDate() {
+        return finalizationDate;
+    }
+
+    public void setFinalizationDate(LocalDateTime finalizationDate) {
+        this.finalizationDate = finalizationDate;
+    }
+
+    public Integer getMonth() {
+        return month;
+    }
+
+    public void setMonth(Integer month) {
+        this.month = month;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public BigDecimal getClosingBalance() {
+        return closingBalance;
+    }
+
+    public void setClosingBalance(BigDecimal closingBalance) {
+        this.closingBalance = closingBalance;
+    }
+
+    public boolean isAutomatic() {
+        return automatic;
+    }
+
+    public void setAutomatic(boolean automatic) {
+        this.automatic = automatic;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+}
