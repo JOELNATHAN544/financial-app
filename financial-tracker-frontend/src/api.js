@@ -1,5 +1,12 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082';
 
+export class AuthError extends Error {
+    constructor(message = 'Unauthorized access') {
+        super(message);
+        this.name = 'AuthError';
+    }
+}
+
 const apiFetch = async (endpoint, options = {}) => {
     const jwtToken = localStorage.getItem('jwtToken');
 
@@ -21,7 +28,7 @@ const apiFetch = async (endpoint, options = {}) => {
         // If unauthorized, we might want to trigger a logout or refresh
         if (response.status === 401 || response.status === 403) {
             // Custom event or simple throw for handling in components
-            throw new Error('AUTH_UNAUTHORIZED');
+            throw new AuthError();
         }
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `Request failed with status ${response.status}`);
