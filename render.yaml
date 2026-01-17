@@ -1,0 +1,49 @@
+services:
+  # Backend Service
+  - type: web
+    name: financial-tracker-backend
+    env: java
+    plan: free
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/*.jar
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: financial-tracker-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: financial-tracker-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: financial-tracker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: financial-tracker-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://financial-tracker-web.onrender.com
+
+  # Frontend Static Site
+  - type: static
+    name: financial-tracker-web
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: financial-tracker-backend
+          type: web
+          property: url
+
+databases:
+  - name: financial-tracker-db
+    plan: free
+    databaseName: financial_tracker
+    user: nathan
