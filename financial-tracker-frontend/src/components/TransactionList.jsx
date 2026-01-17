@@ -1,96 +1,167 @@
-import React from 'react';
+import React from 'react'
 
 const TransactionList = ({ transactions, onEdit, onDelete }) => {
-  console.log('Transactions received in TransactionList.jsx:', transactions);
+  console.log('Transactions received in TransactionList.jsx:', transactions)
 
   // Get current month and year
-  const currentDate = new Date();
-  const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const currentDate = new Date()
+  const monthYear = currentDate.toLocaleString('default', {
+    month: 'long',
+    year: 'numeric',
+  })
 
   if (!transactions.length) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div className="dark:text-gray-400 py-8 text-center text-gray-500">
         No transactions yet. Add your first transaction above!
       </div>
-    );
+    )
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 shadow-lg rounded-lg overflow-hidden dark:from-gray-800 dark:to-gray-900">
+    <div className="glass-card animate-premium-fade overflow-hidden border-none">
       {/* Month/Year Display */}
-      <div className="px-6 py-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 dark:from-blue-600 dark:via-indigo-600 dark:to-purple-600">
-        <h2 className="text-xl font-semibold text-white drop-shadow-sm">{monthYear}</h2>
+      <div className="premium-gradient flex items-center justify-between rounded-none px-8 py-6 shadow-none">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-white drop-shadow-md">
+            {monthYear}
+          </h2>
+          <p className="text-sm font-medium text-indigo-100 opacity-80">
+            Monthly Activity Report
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/30 bg-white/20 px-4 py-2 backdrop-blur-md">
+          <span className="text-xs font-bold uppercase leading-none tracking-widest text-white">
+            {transactions.length} Records
+          </span>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table className="dark:divide-slate-800/50 min-w-full divide-y divide-slate-200/50">
           <thead>
-            <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700/50">
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+            <tr className="dark:bg-slate-900/50 bg-slate-50/50">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Date
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Description
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Credit
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Debit
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Balance
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider dark:text-gray-300">
+              <th
+                scope="col"
+                className="dark:text-slate-400 px-8 py-4 text-center text-xs font-bold uppercase tracking-widest text-slate-500"
+              >
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+          <tbody className="dark:divide-slate-800/50 divide-y divide-slate-200/50">
             {transactions.map((transaction) => {
-              const displayBalance = Number(transaction.balance);
-              console.log('Raw balance:', transaction.balance, 'Processed balance:', displayBalance);
+              const displayBalance = Number(transaction.balance)
               return (
-                <tr key={transaction.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700/50 dark:hover:to-gray-600/50 transition-all duration-200">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                    {new Date(transaction.date).toLocaleDateString()}
+                <tr
+                  key={transaction.id}
+                  className="dark:hover:bg-slate-800/30 group transition-all duration-300 hover:bg-slate-100/50"
+                >
+                  <td className="dark:text-slate-400 whitespace-nowrap px-8 py-5 text-sm font-medium text-slate-500">
+                    {new Date(transaction.date).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-100">
+                  <td className="dark:text-slate-100 px-8 py-5 text-sm font-bold text-slate-900">
                     {transaction.usedFor}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-emerald-600 dark:text-emerald-400">
-                    {transaction.credit ? `${Number(transaction.credit).toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
+                  <td className="dark:text-emerald-400 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-emerald-600">
+                    {transaction.credit
+                      ? `${Number(transaction.credit).toLocaleString('en-CM')} FCFA`
+                      : '—'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-rose-600 dark:text-rose-400">
-                    {transaction.debit ? `${Number(transaction.debit).toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
+                  <td className="dark:text-rose-400 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-rose-600">
+                    {transaction.debit
+                      ? `${Number(transaction.debit).toLocaleString('en-CM')} FCFA`
+                      : '—'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-800 dark:text-gray-100">
-                    {!isNaN(displayBalance) ? `${displayBalance.toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA` : '-'}
+                  <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-slate-900">
+                    {!isNaN(displayBalance)
+                      ? `${displayBalance.toLocaleString('en-CM')} FCFA`
+                      : '—'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                    <div className="flex space-x-3">
+                  <td className="whitespace-nowrap px-8 py-5 text-center text-sm">
+                    <div className="flex justify-center space-x-2">
                       <button
                         onClick={() => onEdit(transaction)}
-                        className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200"
+                        className="dark:text-indigo-400 rounded-lg p-2 text-indigo-600 transition-all duration-300 hover:bg-indigo-500/10"
+                        title="Edit entry"
                       >
-                        Edit
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
                       </button>
                       <button
                         onClick={() => onDelete(transaction.id)}
-                        className="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 transition-colors duration-200"
+                        className="dark:text-rose-400 rounded-lg p-2 text-rose-600 transition-all duration-300 hover:bg-rose-500/10"
+                        title="Delete entry"
                       >
-                        Delete
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </td>
                 </tr>
-              );
+              )
             })}
           </tbody>
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TransactionList; 
+export default TransactionList
