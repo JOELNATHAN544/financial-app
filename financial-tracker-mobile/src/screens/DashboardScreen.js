@@ -15,6 +15,10 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const currentBalance = transactions.length > 0
+    ? Number(transactions[0].balance)
+    : 0;
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -30,10 +34,6 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
     fetchTransactions();
   }, [jwtToken]);
 
-  const handleEdit = (transaction) => {
-    Alert.alert('Edit', `Edit transaction: ${transaction.usedFor}`);
-  };
-
   const handleDelete = async (id) => {
     try {
       await api.delete(`/api/transactions/${id}`, jwtToken);
@@ -43,26 +43,48 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366f1" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Financial Tracker</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+        <View>
+          <Text style={styles.welcomeText}>Hello, Nathan</Text>
+          <Text style={styles.dateText}>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+        </View>
+        <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome to your Financial Dashboard!</Text>
-        <Text style={styles.subtitleText}>
-          Your transactions and financial data will appear here.
-        </Text>
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceLabel}>Current Balance</Text>
+        <Text style={styles.balanceAmount}>{currentBalance.toLocaleString('en-CM')} FCFA</Text>
+        <View style={styles.balanceStats}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Monthly Income</Text>
+            <Text style={styles.statValue}>+0 FCFA</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Monthly Expenses</Text>
+            <Text style={styles.statValue}>-0 FCFA</Text>
+          </View>
+        </View>
+      </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 40 }} />
-        ) : (
-          <TransactionList transactions={transactions} onEdit={handleEdit} onDelete={handleDelete} />
-        )}
+      <View style={styles.listContainer}>
+        <Text style={styles.sectionTitle}>Recent Transactions</Text>
+        <TransactionList
+          transactions={transactions}
+          onEdit={(t) => Alert.alert('Edit', `Edit ${t.usedFor}`)}
+          onDelete={handleDelete}
+        />
       </View>
     </SafeAreaView>
   );
@@ -71,49 +93,94 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 20,
   },
-  title: {
+  welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: '#1e293b',
   },
-  logoutButton: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  dateText: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  logoutBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#fee2e2',
   },
   logoutText: {
-    color: 'white',
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  balanceCard: {
+    marginHorizontal: 20,
+    padding: 24,
+    borderRadius: 24,
+    backgroundColor: '#6366f1',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  balanceLabel: {
+    color: '#e0e7ff',
     fontSize: 14,
     fontWeight: '600',
   },
-  content: {
+  balanceAmount: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '800',
+    marginVertical: 8,
+  },
+  balanceStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  statItem: {
     flex: 1,
-    padding: 20,
   },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#1f2937',
+  statLabel: {
+    color: '#e0e7ff',
+    fontSize: 10,
+    textTransform: 'uppercase',
   },
-  subtitleText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#6b7280',
+  statValue: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  listContainer: {
+    flex: 1,
+    marginTop: 32,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
   },
 });
 
