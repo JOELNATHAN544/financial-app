@@ -3,18 +3,40 @@
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --accent-primary: #6366f1;
+  --accent-secondary: #a855f7;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+[data-theme='dark'] {
+  --glass-bg: rgba(17, 24, 39, 0.7);
+  --glass-border: rgba(75, 85, 99, 0.3);
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-md bg-opacity-70 border border-opacity-30 rounded-2xl shadow-xl transition-all duration-300;
+    background-color: var(--glass-bg);
+    border-color: var(--glass-border);
+  }
+
+  .premium-gradient {
+    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500;
+  }
+
+  .interactive-button {
+    @apply px-6 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95;
+  }
+}
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen transition-colors duration-500 bg-gray-50 text-gray-900;
+  }
+
+  [data-theme="dark"] body {
+    @apply bg-gray-900 text-gray-100;
+  }
 }

@@ -1,0 +1,9 @@
+target
+*.log
+.git
+.gitignore
+*.md
+Dockerfile
+.env*
+.mvn
+mvnw*

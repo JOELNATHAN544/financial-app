@@ -13,9 +13,10 @@ import java.io.IOException;
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        // This is invoked when user tries to access a secured REST resource without supplying any credentials
-        // We should just send a 401 Unauthorized response because there is no 'login page' to redirect to
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException authException) throws IOException, ServletException {
+        System.out.println("[AUTH] Unauthorized access to: " + request.getMethod() + " " + request.getRequestURI());
+        System.out.println("[AUTH] Rejection reason: " + authException.getMessage());
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
-} 
+}

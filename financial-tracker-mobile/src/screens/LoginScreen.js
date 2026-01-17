@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { api } from '../api';
 
 const LoginScreen = ({ navigation, onLogin }) => {
   const [username, setUsername] = useState('');
@@ -24,33 +25,8 @@ const LoginScreen = ({ navigation, onLogin }) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.1.94:8082/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const contentType = response.headers.get('content-type');
-      if (!response.ok) {
-        let errorMsg = 'Login failed';
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } else {
-          const text = await response.text();
-          errorMsg = text;
-        }
-        throw new Error(errorMsg);
-      }
-
-      const data = await response.json();
-      const token = data.jwt;
-      
-      // Store token (we'll implement proper storage later)
-      // For now, we'll pass it to the parent component
-      onLogin(token);
+      const data = await api.post('/api/auth/login', { username, password });
+      onLogin(data.jwt);
     } catch (error) {
       Alert.alert('Login Error', error.message);
     } finally {

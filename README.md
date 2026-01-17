@@ -30,7 +30,7 @@ A full-stack application for tracking financial transactions with automatic mont
 ### Prerequisites
 - Java 21 or higher
 - Node.js 18 or higher
-- PostgreSQL
+- PostgreSQL (Vagrant setup uses port **5433** to avoid local conflicts)
 
 ### Backend Setup
 1. Navigate to the backend directory:

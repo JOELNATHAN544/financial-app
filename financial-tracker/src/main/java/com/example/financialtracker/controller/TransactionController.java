@@ -17,7 +17,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/transactions")
-@CrossOrigin(origins = "http://localhost:5173") // Allow requests from your React frontend
 public class TransactionController {
 
     @Autowired
@@ -26,29 +25,50 @@ public class TransactionController {
     @Autowired
     private UserService userService;
 
+    private User getAuthenticatedUser(org.springframework.security.core.userdetails.UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+        User user = userService.findByUsername(userDetails.getUsername());
+        if (user == null) {
+            throw new RuntimeException("User not found: " + userDetails.getUsername());
+        }
+        return user;
+    }
+
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<Transaction>> getAllTransactions(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         List<Transaction> transactions = transactionService.getAllTransactions(user);
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction, @AuthenticationPrincipal User user) {
-        // Ensure the user is associated with the transaction before saving
+    public ResponseEntity<?> createTransaction(@RequestBody Transaction transaction,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        System.out.println("[API] POST /api/transactions reached for user: "
+                + (userDetails != null ? userDetails.getUsername() : "NULL"));
+        User user = getAuthenticatedUser(userDetails);
         transaction.setUser(user);
         Transaction newTransaction = transactionService.createTransaction(transaction, user);
         return new ResponseEntity<>(newTransaction, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         Optional<Transaction> transaction = transactionService.getTransactionById(id, user);
         return transaction.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody Transaction transactionDetails, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id,
+            @RequestBody Transaction transactionDetails,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         Transaction updatedTransaction = transactionService.updateTransaction(id, transactionDetails, user);
         if (updatedTransaction != null) {
             return new ResponseEntity<>(updatedTransaction, HttpStatus.OK);
@@ -58,20 +78,26 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         transactionService.deleteTransaction(id, user);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/finalize-month")
-    public ResponseEntity<MonthlySummary> finalizeMonth(@AuthenticationPrincipal User user) {
+    public ResponseEntity<MonthlySummary> finalizeMonth(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         MonthlySummary summary = transactionService.finalizeMonth(user);
         return new ResponseEntity<>(summary, HttpStatus.OK);
     }
 
     @GetMapping("/finalization-history")
-    public ResponseEntity<List<FinalizationLog>> getFinalizationHistory(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<FinalizationLog>> getFinalizationHistory(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = getAuthenticatedUser(userDetails);
         List<FinalizationLog> finalizationHistory = transactionService.getFinalizationHistory(user);
         return new ResponseEntity<>(finalizationHistory, HttpStatus.OK);
     }
-} 
+}
