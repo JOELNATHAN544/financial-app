@@ -3,24 +3,24 @@ import Layout from './components/Layout'
 import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
+import { api } from './api'
 
 function App() {
   const [transactions, setTransactions] = useState([])
   const [finalizationHistory, setFinalizationHistory] = useState([])
   const [editingTransaction, setEditingTransaction] = useState(null)
-  const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken')) // Initialize from localStorage
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light'); // New: Theme state
+  const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken'))
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
   useEffect(() => {
     if (jwtToken) {
       fetchTransactions()
       fetchFinalizationHistory()
     }
-  }, [jwtToken]) // Depend on jwtToken
+  }, [jwtToken])
 
-  // New: Effect to apply theme class to body and save to localStorage
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme); // Use data-theme attribute
+    document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 
@@ -30,79 +30,36 @@ function App() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch('http://localhost:8082/api/transactions', {
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-      })
-      if (!response.ok) {
-        throw new Error('Failed to fetch transactions')
-      }
-      const data = await response.json()
+      const data = await api.get('/api/transactions')
       setTransactions(data)
-      console.log('Transactions fetched in App.jsx:', data); // Added console log
     } catch (error) {
       console.error('Error fetching transactions:', error)
-      if (error.message.includes('403') || error.message.includes('401')) {
-        // If unauthorized, clear token and force re-login
-        handleLogout();
-      }
+      if (error.message === 'Unauthorized') handleLogout();
     }
   }
 
   const fetchFinalizationHistory = async () => {
     try {
-      const response = await fetch('http://localhost:8082/api/transactions/finalization-history', {
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-      })
-      if (!response.ok) {
-        throw new Error('Failed to fetch finalization history')
-      }
-      const data = await response.json()
+      const data = await api.get('/api/transactions/finalization-history')
       setFinalizationHistory(data)
     } catch (error) {
       console.error('Error fetching finalization history:', error)
-      if (error.message.includes('403') || error.message.includes('401')) {
-        handleLogout();
-      }
+      if (error.message === 'Unauthorized') handleLogout();
     }
   }
 
   const handleSubmitTransaction = async (transactionData) => {
     try {
-      let response;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
-      };
-
       if (editingTransaction) {
-        response = await fetch(`http://localhost:8082/api/transactions/${editingTransaction.id}`, {
-          method: 'PUT',
-          headers: headers,
-          body: JSON.stringify(transactionData),
-        })
+        await api.put(`/api/transactions/${editingTransaction.id}`, transactionData)
       } else {
-        response = await fetch('http://localhost:8082/api/transactions', {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(transactionData),
-        })
+        await api.post('/api/transactions', transactionData)
       }
-
-      if (!response.ok) {
-        throw new Error('Failed to save transaction')
-      }
-
       await fetchTransactions()
       setEditingTransaction(null)
     } catch (error) {
       console.error('Error saving transaction:', error)
-      if (error.message.includes('403') || error.message.includes('401')) {
-        handleLogout();
-      }
+      if (error.message === 'Unauthorized') handleLogout();
     }
   }
 
@@ -112,23 +69,11 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8082/api/transactions/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete transaction')
-      }
-
+      await api.delete(`/api/transactions/${id}`)
       await fetchTransactions()
     } catch (error) {
       console.error('Error deleting transaction:', error)
-      if (error.message.includes('403') || error.message.includes('401')) {
-        handleLogout();
-      }
+      if (error.message === 'Unauthorized') handleLogout();
     }
   }
 
@@ -164,7 +109,7 @@ function App() {
             Cancel Edit
           </button>
         )}
-        
+
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Current Transactions</h2>
           <TransactionList
@@ -202,7 +147,7 @@ function App() {
               </tbody>
             </table>
           </div>
-      </div>
+        </div>
       </div>
     </Layout>
   )
