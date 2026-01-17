@@ -22,7 +22,13 @@ function Auth({ onLogin }) {
         return;
       }
 
-      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/;
+      if (!emailRegex.test(email)) {
+        setError('Invalid email format');
+        return;
+      }
+
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>\\-_=+[\]\\/~`|;:'"]).{8,}$/;
       if (!passwordRegex.test(password)) {
         setError('Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters.');
         return;
