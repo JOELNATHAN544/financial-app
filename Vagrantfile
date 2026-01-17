@@ -30,9 +30,17 @@ Vagrant.configure("2") do |config|
     sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/15/main/postgresql.conf
     echo "host all all 0.0.0.0/0 md5" | sudo tee -a /etc/postgresql/15/main/pg_hba.conf
     
-    # Create database and user
-    sudo -u postgres psql -c "CREATE DATABASE financial_tracker;"
-    sudo -u postgres psql -c "CREATE USER nathan WITH PASSWORD 'nathan';"
+    # Create user and database (cd to /tmp to avoid permission warnings)
+    cd /tmp
+    
+    # Create user if it doesn't exist
+    sudo -u postgres psql -c "DO 'BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = ''nathan'') THEN CREATE ROLE nathan WITH LOGIN PASSWORD ''nathan''; END IF; END';"
+    
+    # Create database if it doesn't exist
+    if ! sudo -u postgres psql -lqt | cut -d'|' -f1 | grep -qw financial_tracker; then
+        sudo -u postgres psql -c "CREATE DATABASE financial_tracker OWNER nathan;"
+    fi
+    
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE financial_tracker TO nathan;"
     
     sudo systemctl restart postgresql
