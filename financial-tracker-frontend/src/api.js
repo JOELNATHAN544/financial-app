@@ -5,8 +5,9 @@ const apiFetch = async (endpoint, options = {}) => {
 
     console.log(`[API] Fetching ${endpoint} with token prefix: ${jwtToken ? jwtToken.substring(0, 10) + '...' : 'NONE'}`);
 
+    const hasBody = options.body !== undefined && options.body !== null;
     const headers = {
-        'Content-Type': 'application/json',
+        ...(hasBody && { 'Content-Type': 'application/json' }),
         ...(jwtToken && { 'Authorization': `Bearer ${jwtToken}` }),
         ...options.headers,
     };
