@@ -23,18 +23,41 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         try {
             if (authRequest.getUsername() == null || authRequest.getUsername().isBlank() ||
+                    authRequest.getEmail() == null || authRequest.getEmail().isBlank() ||
                     authRequest.getPassword() == null || authRequest.getPassword().isBlank()) {
                 Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("message", "Username and password are required");
+                errorResponse.put("message", "Username, email, and password are required");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            User user = new User(authRequest.getUsername(), authRequest.getPassword());
+            // Email format validation
+            if (!authRequest.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Invalid email format");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Password complexity validation
+            String password = authRequest.getPassword();
+            // Expanded special character set as per CodeRabbit suggestion:
+            // [!@#$%^&*(),.?":{}|<>\-_=+\\[\\]\\\\/~`|;:'\"]
+            if (password.length() < 8 ||
+                    !password.matches(".*[a-zA-Z].*") ||
+                    !password.matches(".*\\d.*") ||
+                    !password.matches(".*[!@#$%^&*(),.?\":{}|<>\\-_=+\\[\\]\\\\/~`|;:'\"].*")) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message",
+                        "Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters.");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            User user = new User(authRequest.getUsername(), authRequest.getEmail(), authRequest.getPassword());
             User registeredUser = authService.registerUser(user);
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", registeredUser.getId());
             response.put("username", registeredUser.getUsername());
+            response.put("email", registeredUser.getEmail());
             response.put("message", "User registered successfully");
 
             return ResponseEntity.ok(response);
