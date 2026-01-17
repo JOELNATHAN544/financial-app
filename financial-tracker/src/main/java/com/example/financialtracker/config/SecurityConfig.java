@@ -32,7 +32,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:5173}")
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
     private String allowedOrigins;
 
     @Bean
@@ -78,6 +78,8 @@ public class SecurityConfig {
                                                                                 // unauthenticated access
                 )
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(org.springframework.web.bind.annotation.RequestMethod.OPTIONS.name())
+                        .permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Allow registration and
                                                                                               // login without
                                                                                               // authentication

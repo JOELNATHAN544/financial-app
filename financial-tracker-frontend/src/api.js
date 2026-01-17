@@ -3,6 +3,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082
 const apiFetch = async (endpoint, options = {}) => {
     const jwtToken = localStorage.getItem('jwtToken');
 
+    console.log(`[API] Fetching ${endpoint} with token prefix: ${jwtToken ? jwtToken.substring(0, 10) + '...' : 'NONE'}`);
+
     const headers = {
         'Content-Type': 'application/json',
         ...(jwtToken && { 'Authorization': `Bearer ${jwtToken}` }),

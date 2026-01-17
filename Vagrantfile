@@ -42,6 +42,7 @@ Vagrant.configure("2") do |config|
     fi
     
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE financial_tracker TO nathan;"
+    sudo -u postgres psql -d financial_tracker -c "GRANT ALL ON SCHEMA public TO nathan;"
     
     sudo systemctl restart postgresql
   SHELL

@@ -11,19 +11,27 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // Allow requests from your React frontend
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         try {
+            User user = new User(authRequest.getUsername(), authRequest.getPassword());
             User registeredUser = authService.registerUser(user);
-            return ResponseEntity.ok(registeredUser);
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("id", registeredUser.getId());
+            response.put("username", registeredUser.getUsername());
+            response.put("message", "User registered successfully");
+
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
@@ -32,4 +40,4 @@ public class AuthController {
         AuthResponse authResponse = authService.authenticateUser(authRequest);
         return ResponseEntity.ok(authResponse);
     }
-} 
+}

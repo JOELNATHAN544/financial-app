@@ -28,14 +28,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = jwtUtil.extractUsername(token);
+            try {
+                username = jwtUtil.extractUsername(token);
+                System.out.println("[JWT] Extracted username: " + username);
+            } catch (Exception e) {
+                System.out.println("[JWT] Error extracting username: " + e.getMessage());
+            }
+        } else {
+            System.out.println("[JWT] No Bearer token found in header");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -45,8 +53,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("[JWT] Authentication set in context for: " + userDetails.getUsername());
+            } else {
+                System.out.println("[JWT] Token validation failed for: " + userDetails.getUsername());
             }
         }
         filterChain.doFilter(request, response);
     }
-} 
+}
