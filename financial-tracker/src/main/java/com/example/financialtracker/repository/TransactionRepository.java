@@ -10,9 +10,15 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findAllByUser(User user);
-    Optional<Transaction> findTopByUserOrderByDateDesc(User user);
+    List<Transaction> findAllByUserOrderByDateAscIdAsc(User user);
+
+    List<Transaction> findAllByUserAndFinalizedOrderByDateAscIdAsc(User user, boolean finalized);
+
+    Optional<Transaction> findTopByUserAndFinalizedOrderByDateDescIdDesc(User user, boolean finalized);
+
     Optional<Transaction> findByIdAndUser(Long id, User user);
+
     void deleteByIdAndUser(Long id, User user);
-    void deleteAllByUser(User user);
-} 
+
+    void deleteAllByUserAndFinalized(User user, boolean finalized);
+}
