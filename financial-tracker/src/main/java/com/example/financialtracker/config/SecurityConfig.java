@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Arrays;
@@ -31,6 +32,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
 
     @Bean
     public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
@@ -49,12 +53,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
@@ -62,34 +68,36 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RestAuthenticationEntryPoint restAuthenticationEntryPoint, DaoAuthenticationProvider authenticationProvider) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
+            RestAuthenticationEntryPoint restAuthenticationEntryPoint, DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(withDefaults())
-            .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(restAuthenticationEntryPoint) // Use custom entry point for unauthenticated access
-            )
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Allow registration and login without authentication
-                .anyRequest().authenticated() // All other requests require authentication
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .httpBasic(AbstractHttpConfigurer::disable) // Disable basic authentication
-            .formLogin(AbstractHttpConfigurer::disable) // Disable form login
-            .authenticationProvider(authenticationProvider) // Explicitly register the DaoAuthenticationProvider
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JwtAuthFilter before UsernamePasswordAuthenticationFilter for protected routes
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(withDefaults())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(restAuthenticationEntryPoint) // Use custom entry point for
+                                                                                // unauthenticated access
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Allow registration and
+                                                                                              // login without
+                                                                                              // authentication
+                        .anyRequest().authenticated() // All other requests require authentication
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(AbstractHttpConfigurer::disable) // Disable basic authentication
+                .formLogin(AbstractHttpConfigurer::disable) // Disable form login
+                .authenticationProvider(authenticationProvider) // Explicitly register the DaoAuthenticationProvider
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JwtAuthFilter before
+                                                                                             // UsernamePasswordAuthenticationFilter
+                                                                                             // for protected routes
         return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173", // Web frontend
-            "http://192.168.1.94:5173", // Web frontend via IP
-            "exp://192.168.1.94:8081", // Expo development server
-            "exp://localhost:8081" // Expo development server localhost
-        )); 
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -97,4 +105,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-} 
+}
