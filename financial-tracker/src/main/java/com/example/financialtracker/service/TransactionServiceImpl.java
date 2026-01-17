@@ -71,6 +71,17 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Cannot update a finalized transaction");
         }
 
+        // Validate that at least one of credit or debit is non-zero
+        BigDecimal credit = transactionDetails.getCredit() != null ? transactionDetails.getCredit()
+                : transaction.getCredit();
+        BigDecimal debit = transactionDetails.getDebit() != null ? transactionDetails.getDebit()
+                : transaction.getDebit();
+
+        if ((credit == null || credit.compareTo(BigDecimal.ZERO) == 0) &&
+                (debit == null || debit.compareTo(BigDecimal.ZERO) == 0)) {
+            throw new RuntimeException("Transaction must have either credit or debit amount");
+        }
+
         if (transactionDetails.getDate() != null) {
             transaction.setDate(transactionDetails.getDate());
         }
