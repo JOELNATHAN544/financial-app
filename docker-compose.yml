@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: financial_tracker
+      POSTGRES_USER: nathan
+      POSTGRES_PASSWORD: nathan
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./financial-tracker
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=financial_tracker
+      - DB_USERNAME=nathan
+      - DB_PASSWORD=nathan
+      - CORS_ALLOWED_ORIGINS=http://localhost:80,http://localhost:5173
+    depends_on:
+      - database
+
+  frontend:
+    build: ./financial-tracker-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8082
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
