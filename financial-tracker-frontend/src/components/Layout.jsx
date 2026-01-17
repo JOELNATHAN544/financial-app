@@ -1,30 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react'
+import { FiSun, FiMoon } from 'react-icons/fi'
 
 const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
-  const [showOfferingNotification, setShowOfferingNotification] = useState(false);
+  const [showOfferingNotification, setShowOfferingNotification] =
+    useState(false)
 
   useEffect(() => {
-    const today = new Date();
+    const today = new Date()
     // Check if today is Sunday (getDay() returns 0 for Sunday)
     if (today.getDay() === 0) {
-      setShowOfferingNotification(true);
+      setShowOfferingNotification(true)
     }
-  }, []);
+  }, [])
 
   const handleCloseNotification = () => {
-    setShowOfferingNotification(false);
-  };
+    setShowOfferingNotification(false)
+  }
 
   return (
     <div className="min-h-screen transition-colors duration-500">
-      <header className="sticky top-0 z-40 w-full backdrop-blur-lg bg-white/70 dark:bg-gray-900/70 border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
-        <div className="max-w-7xl mx-auto h-20 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-3 group cursor-pointer">
-            <div className="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-300">
-              <span className="text-white font-bold text-xl">$</span>
+      <header className="dark:bg-slate-950/60 dark:border-slate-800/50 sticky top-0 z-40 w-full border-b border-slate-200/50 bg-white/60 backdrop-blur-xl transition-all duration-300">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div
+            className="group flex cursor-pointer items-center space-x-3"
+            onClick={() => (window.location.href = '/')}
+          >
+            <div className="premium-gradient flex h-12 w-12 transform items-center justify-center rounded-2xl shadow-xl shadow-indigo-500/20 transition-all duration-500 group-hover:rotate-12">
+              <span className="text-2xl font-bold text-white">$</span>
             </div>
-            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+            <h1 className="dark:from-white dark:to-slate-400 bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-2xl font-black tracking-tight text-transparent">
               FinanceFlow
             </h1>
           </div>
@@ -32,22 +36,45 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl glass-card hover:premium-gradient hover:text-white transition-all duration-300"
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="glass-card hover:premium-gradient group rounded-2xl border-none p-3 transition-all duration-500"
+              title={
+                theme === 'dark'
+                  ? 'Switch to Light Mode'
+                  : 'Switch to Dark Mode'
+              }
             >
-              {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
+              {theme === 'dark' ? (
+                <FiSun
+                  size={20}
+                  className="transition-transform duration-500 group-hover:rotate-90"
+                />
+              ) : (
+                <FiMoon
+                  size={20}
+                  className="transition-transform duration-500 group-hover:-rotate-12"
+                />
+              )}
             </button>
 
             {onShowSettings && (
               <button
                 onClick={onShowSettings}
-                className="p-2 rounded-xl glass-card hover:premium-gradient hover:text-white transition-all duration-300"
+                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
                 title="Account Settings"
-                aria-label="Account Settings"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
               </button>
             )}
@@ -55,7 +82,7 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
             {onLogout && (
               <button
                 onClick={onLogout}
-                className="interactive-button bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30"
+                className="interactive-button bg-rose-500/90 text-white shadow-xl shadow-rose-500/30 hover:bg-rose-600"
               >
                 Logout
               </button>
@@ -64,31 +91,45 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-fade-in">
+      <main className="animate-fade-in mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {children}
       </main>
 
       {showOfferingNotification && (
-        <div className="fixed bottom-8 right-8 z-50 glass-card p-6 border-l-4 border-indigo-500 animate-slide-up max-w-sm">
+        <div className="glass-card animate-slide-up fixed bottom-8 right-8 z-50 max-w-sm border-l-4 border-indigo-500 p-6">
           <div className="flex items-start">
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Sunday's Blessing</h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">"Honour the LORD with thy substance, and with the firstfruits of all thine increase."</p>
+              <h3 className="dark:text-indigo-400 text-lg font-bold text-indigo-600">
+                Sunday's Blessing
+              </h3>
+              <p className="dark:text-gray-300 mt-1 text-sm text-gray-600">
+                "Honour the LORD with thy substance, and with the firstfruits of
+                all thine increase."
+              </p>
             </div>
             <button
               onClick={handleCloseNotification}
-              className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="ml-4 text-gray-400 transition-colors hover:text-gray-600"
               aria-label="Close notification"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Layout; 
+export default Layout
