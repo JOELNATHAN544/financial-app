@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -37,7 +40,16 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
+    @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public Transaction createTransaction(Transaction transaction, User user) {
+        // Validate that at least one of credit or debit is non-zero
+        BigDecimal credit = transaction.getCredit() != null ? transaction.getCredit() : BigDecimal.ZERO;
+        BigDecimal debit = transaction.getDebit() != null ? transaction.getDebit() : BigDecimal.ZERO;
+
+        if (credit.compareTo(BigDecimal.ZERO) == 0 && debit.compareTo(BigDecimal.ZERO) == 0) {
+            throw new RuntimeException("Transaction must have either credit or debit amount");
+        }
+
         if (transaction.getDate() == null) {
             transaction.setDate(LocalDate.now());
         }
@@ -64,6 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
+    @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public Transaction updateTransaction(Long id, Transaction transactionDetails, User user) {
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
@@ -101,6 +114,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
+    @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public void deleteTransaction(Long id, User user) {
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
@@ -161,6 +175,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElse(BigDecimal.ZERO);
     }
 
+    @Transactional
     private void recalculateBalances(User user) {
         List<Transaction> transactions = transactionRepository.findAllByUserAndFinalizedOrderByDateAscIdAsc(user,
                 false);
