@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import TransactionList from '../components/TransactionList';
+import { api } from '../api';
 
 const DashboardScreen = ({ onLogout, jwtToken }) => {
   const [transactions, setTransactions] = useState([]);
@@ -17,16 +18,7 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetch('http://192.168.1.94:8082/api/transactions', {
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch transactions');
-        }
-        const data = await response.json();
-        console.log('Fetched transactions:', data); // Debug log for date issue
+        const data = await api.get('/api/transactions', jwtToken);
         setTransactions(data);
       } catch (error) {
         Alert.alert('Error', error.message);
@@ -39,24 +31,12 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
   }, [jwtToken]);
 
   const handleEdit = (transaction) => {
-    // TODO: Implement edit functionality (open modal or navigate to edit screen)
     Alert.alert('Edit', `Edit transaction: ${transaction.usedFor}`);
   };
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://192.168.1.94:8082/api/transactions/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-      });
-      const text = await response.text();
-      console.log('Delete response:', response.status, text);
-      if (!response.ok) {
-        throw new Error('Failed to delete transaction');
-      }
-      // Refresh transactions
+      await api.delete(`/api/transactions/${id}`, jwtToken);
       setTransactions(transactions.filter(t => t.id !== id));
     } catch (error) {
       Alert.alert('Delete Error', error.message);
@@ -71,13 +51,13 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Welcome to your Financial Dashboard!</Text>
         <Text style={styles.subtitleText}>
           Your transactions and financial data will appear here.
         </Text>
-        
+
         {loading ? (
           <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 40 }} />
         ) : (
