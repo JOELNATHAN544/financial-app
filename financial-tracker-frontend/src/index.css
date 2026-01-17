@@ -58,7 +58,11 @@
   }
 
   .input-field {
-    @apply dark:bg-slate-900/50 dark:border-slate-800 dark:placeholder-slate-600 w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-2.5 placeholder-slate-400 outline-none transition-all duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50;
+    @apply w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-2.5 placeholder-slate-400 outline-none transition-all duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50;
+  }
+
+  [data-theme='dark'] .input-field {
+    @apply border-slate-800 bg-slate-900/50 text-white placeholder-slate-600;
   }
 }
 
