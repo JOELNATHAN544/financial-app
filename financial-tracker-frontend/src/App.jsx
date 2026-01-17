@@ -3,7 +3,7 @@ import Layout from './components/Layout'
 import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
-import { api } from './api'
+import { api, AuthError } from './api'
 
 function App() {
   const [transactions, setTransactions] = useState([])
@@ -34,7 +34,7 @@ function App() {
       setTransactions(data)
     } catch (error) {
       console.error('Error fetching transactions:', error)
-      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
+      if (error instanceof AuthError) handleLogout();
     }
   }
 
@@ -44,7 +44,7 @@ function App() {
       setFinalizationHistory(data)
     } catch (error) {
       console.error('Error fetching finalization history:', error)
-      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
+      if (error instanceof AuthError) handleLogout();
     }
   }
 
@@ -59,7 +59,7 @@ function App() {
       setEditingTransaction(null)
     } catch (error) {
       console.error('Error saving transaction:', error)
-      if (error.message === 'AUTH_UNAUTHORIZED') {
+      if (error instanceof AuthError) {
         handleLogout();
       } else {
         // Just throw the error to be handled by the form component
@@ -78,7 +78,7 @@ function App() {
       await fetchTransactions()
     } catch (error) {
       console.error('Error deleting transaction:', error)
-      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
+      if (error instanceof AuthError) handleLogout();
     }
   }
 
