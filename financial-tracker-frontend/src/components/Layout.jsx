@@ -34,6 +34,7 @@ const Layout = ({ children, onLogout, theme, toggleTheme }) => {
               onClick={toggleTheme}
               className="p-2 rounded-xl glass-card hover:premium-gradient hover:text-white transition-all duration-300"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
@@ -64,6 +65,7 @@ const Layout = ({ children, onLogout, theme, toggleTheme }) => {
             <button
               onClick={handleCloseNotification}
               className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close notification"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
