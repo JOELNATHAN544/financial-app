@@ -28,12 +28,24 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
 
         // Check if user exists, if not, create one (password-less social login)
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
-            newUser.setUsername(email); // Use email as default username for OAuth users
+
+            // Use Google name as basis for username
+            String baseUsername = (name != null && !name.isEmpty()) ? name : email.split("@")[0];
+            String finalUsername = baseUsername;
+
+            // Handle username collisions
+            int count = 1;
+            while (userRepository.findByUsername(finalUsername).isPresent()) {
+                finalUsername = baseUsername + "_" + count++;
+            }
+
+            newUser.setUsername(finalUsername);
             newUser.setPassword("OAUTH2_USER_" + java.util.UUID.randomUUID()); // Random password for security
             return userRepository.save(newUser);
         });
