@@ -19,6 +19,16 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
     ? Number(transactions[0].balance)
     : 0;
 
+  const stats = transactions.reduce((acc, t) => {
+    const date = new Date(t.date);
+    const now = new Date();
+    if (date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
+      acc.income += Number(t.credit || 0);
+      acc.expenses += Number(t.debit || 0);
+    }
+    return acc;
+  }, { income: 0, expenses: 0 });
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -55,7 +65,7 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.welcomeText}>Hello, Nathan</Text>
+          <Text style={styles.welcomeText}>Hello, User</Text>
           <Text style={styles.dateText}>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
         </View>
         <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
@@ -69,11 +79,11 @@ const DashboardScreen = ({ onLogout, jwtToken }) => {
         <View style={styles.balanceStats}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Monthly Income</Text>
-            <Text style={styles.statValue}>+0 FCFA</Text>
+            <Text style={styles.statValue}>+{stats.income.toLocaleString('en-CM')} FCFA</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Monthly Expenses</Text>
-            <Text style={styles.statValue}>-0 FCFA</Text>
+            <Text style={styles.statValue}>-{stats.expenses.toLocaleString('en-CM')} FCFA</Text>
           </View>
         </View>
       </View>
