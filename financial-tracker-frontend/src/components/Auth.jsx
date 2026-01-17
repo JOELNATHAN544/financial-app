@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { api } from '../api';
 
 function Auth({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -10,24 +11,11 @@ function Auth({ onLogin }) {
     e.preventDefault();
     setError('');
 
-    const url = isLogin ? 'http://localhost:8082/api/auth/login' : 'http://localhost:8082/api/auth/register';
-    const method = 'POST';
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
     try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const data = await api.post(endpoint, { username, password });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || (isLogin ? 'Login failed' : 'Registration failed'));
-      }
-
-      const data = await response.json();
       if (isLogin) {
         const token = data.jwt;
         localStorage.setItem('jwtToken', token);
