@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -19,25 +22,38 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         try {
+            if (authRequest.getUsername() == null || authRequest.getUsername().isBlank() ||
+                    authRequest.getPassword() == null || authRequest.getPassword().isBlank()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Username and password are required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
             User user = new User(authRequest.getUsername(), authRequest.getPassword());
             User registeredUser = authService.registerUser(user);
 
-            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("id", registeredUser.getId());
             response.put("username", registeredUser.getUsername());
             response.put("message", "User registered successfully");
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest) {
-        AuthResponse authResponse = authService.authenticateUser(authRequest);
-        return ResponseEntity.ok(authResponse);
+    public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest) {
+        try {
+            AuthResponse authResponse = authService.authenticateUser(authRequest);
+            return ResponseEntity.ok(authResponse);
+        } catch (RuntimeException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
     }
 }
