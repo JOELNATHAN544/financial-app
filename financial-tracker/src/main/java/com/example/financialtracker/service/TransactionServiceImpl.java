@@ -43,6 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
         transaction.setUser(user);
         transaction.setFinalized(false);
+        transaction.setBalance(java.math.BigDecimal.ZERO); // Temporary balance to satisfy NOT NULL constraint
 
         // Initial save to get an ID
         Transaction saved = transactionRepository.save(transaction);
@@ -70,7 +71,9 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Cannot update a finalized transaction");
         }
 
-        transaction.setDate(transactionDetails.getDate());
+        if (transactionDetails.getDate() != null) {
+            transaction.setDate(transactionDetails.getDate());
+        }
         transaction.setUsedFor(transactionDetails.getUsedFor());
         transaction.setCredit(transactionDetails.getCredit());
         transaction.setDebit(transactionDetails.getDebit());
