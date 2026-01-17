@@ -34,7 +34,7 @@ function App() {
       setTransactions(data)
     } catch (error) {
       console.error('Error fetching transactions:', error)
-      if (error.message === 'Unauthorized') handleLogout();
+      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
     }
   }
 
@@ -44,7 +44,7 @@ function App() {
       setFinalizationHistory(data)
     } catch (error) {
       console.error('Error fetching finalization history:', error)
-      if (error.message === 'Unauthorized') handleLogout();
+      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
     }
   }
 
@@ -59,7 +59,12 @@ function App() {
       setEditingTransaction(null)
     } catch (error) {
       console.error('Error saving transaction:', error)
-      if (error.message === 'Unauthorized') handleLogout();
+      if (error.message === 'AUTH_UNAUTHORIZED') {
+        handleLogout();
+      } else {
+        // Just throw the error to be handled by the form component
+        throw error;
+      }
     }
   }
 
@@ -73,7 +78,7 @@ function App() {
       await fetchTransactions()
     } catch (error) {
       console.error('Error deleting transaction:', error)
-      if (error.message === 'Unauthorized') handleLogout();
+      if (error.message === 'AUTH_UNAUTHORIZED') handleLogout();
     }
   }
 
