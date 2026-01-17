@@ -53,7 +53,8 @@ public class TransactionServiceImpl implements TransactionService {
         recalculateBalances(user);
 
         // Return the updated transaction from DB
-        return transactionRepository.findById(saved.getId()).orElse(saved);
+        return transactionRepository.findById(saved.getId())
+                .orElseThrow(() -> new RuntimeException("Transaction not found after save"));
     }
 
     @Override
@@ -72,13 +73,13 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         // Validate that at least one of credit or debit is non-zero
-        BigDecimal credit = transactionDetails.getCredit() != null ? transactionDetails.getCredit()
+        BigDecimal creditToSet = transactionDetails.getCredit() != null ? transactionDetails.getCredit()
                 : transaction.getCredit();
-        BigDecimal debit = transactionDetails.getDebit() != null ? transactionDetails.getDebit()
+        BigDecimal debitToSet = transactionDetails.getDebit() != null ? transactionDetails.getDebit()
                 : transaction.getDebit();
 
-        if ((credit == null || credit.compareTo(BigDecimal.ZERO) == 0) &&
-                (debit == null || debit.compareTo(BigDecimal.ZERO) == 0)) {
+        if ((creditToSet == null || creditToSet.compareTo(BigDecimal.ZERO) == 0) &&
+                (debitToSet == null || debitToSet.compareTo(BigDecimal.ZERO) == 0)) {
             throw new RuntimeException("Transaction must have either credit or debit amount");
         }
 
@@ -86,15 +87,16 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setDate(transactionDetails.getDate());
         }
         transaction.setUsedFor(transactionDetails.getUsedFor());
-        transaction.setCredit(transactionDetails.getCredit());
-        transaction.setDebit(transactionDetails.getDebit());
+        transaction.setCredit(creditToSet);
+        transaction.setDebit(debitToSet);
 
         transactionRepository.save(transaction);
 
         // Trigger cascading update for all following transactions
         recalculateBalances(user);
 
-        return transactionRepository.findById(id).get();
+        return transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found after save"));
     }
 
     @Override
@@ -108,8 +110,6 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         transactionRepository.delete(transaction);
-
-        // Trigger recalculation after deletion
         recalculateBalances(user);
     }
 
@@ -118,6 +118,10 @@ public class TransactionServiceImpl implements TransactionService {
     public MonthlySummary finalizeMonth(User user) {
         List<Transaction> activeTransactions = transactionRepository.findAllByUserAndFinalizedOrderByDateAscIdAsc(user,
                 false);
+
+        if (activeTransactions.isEmpty()) {
+            throw new RuntimeException("No active transactions found to finalize for this month");
+        }
 
         BigDecimal finalBalance = BigDecimal.ZERO;
         YearMonth summaryMonth = YearMonth.now();
@@ -132,9 +136,6 @@ public class TransactionServiceImpl implements TransactionService {
                 t.setFinalized(true);
             }
             transactionRepository.saveAll(activeTransactions);
-        } else {
-            // If no transactions, use the last summary's balance
-            finalBalance = getCurrentBalance(user);
         }
 
         MonthlySummary summary = new MonthlySummary();
