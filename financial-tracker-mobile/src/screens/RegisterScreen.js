@@ -1,15 +1,4 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { api } from '../api';
 
 const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -28,35 +17,13 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.1.94:8082/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
-      }
-
+      await api.post('/api/auth/register', { username, password });
       Alert.alert(
         'Success',
         'Registration successful! Please log in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Login'),
-          },
-        ]
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
     } catch (error) {
       Alert.alert('Registration Error', error.message);
@@ -71,61 +38,61 @@ const RegisterScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Financial Tracker</Text>
-          <Text style={styles.subtitle}>Create a new account</Text>
+        <View style={styles.formCard}>
+          <Text style={styles.title}>FinanceFlow</Text>
+          <Text style={styles.subtitle}>Create your secure account</Text>
 
-          <View style={styles.inputContainer}>
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>Username</Text>
             <TextInput
               style={styles.input}
               value={username}
               onChangeText={setUsername}
-              placeholder="Choose a username"
+              placeholder="e.g. nathan2024"
               autoCapitalize="none"
               autoCorrect={false}
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="Choose a password"
+              placeholder="Min. 6 characters"
               secureTextEntry
               autoCapitalize="none"
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirm Password</Text>
             <TextInput
               style={styles.input}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirm your password"
+              placeholder="Repeat password"
               secureTextEntry
               autoCapitalize="none"
             />
           </View>
 
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={[styles.primaryBtn, isLoading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={isLoading}
           >
-            <Text style={styles.buttonText}>
-              {isLoading ? 'Creating account...' : 'Create account'}
+            <Text style={styles.btnText}>
+              {isLoading ? 'Creating account...' : 'Get Started'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.linkButton}
+            style={styles.secondaryBtn}
             onPress={() => navigation.navigate('Login')}
           >
-            <Text style={styles.linkText}>
+            <Text style={styles.secondaryBtnText}>
               Already have an account? Sign in
             </Text>
           </TouchableOpacity>
@@ -138,78 +105,81 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
-  },
-  formContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+  },
+  formCard: {
+    backgroundColor: 'white',
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowRadius: 20,
     elevation: 5,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '800',
     textAlign: 'center',
+    color: '#6366f1',
     marginBottom: 8,
-    color: '#1f2937',
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 32,
-    color: '#6b7280',
+    color: '#64748b',
   },
-  inputContainer: {
+  inputGroup: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 8,
-    color: '#374151',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9fafb',
-  },
-  button: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
     padding: 16,
+    fontSize: 16,
+    color: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  primaryBtn: {
+    backgroundColor: '#6366f1',
+    borderRadius: 16,
+    padding: 18,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  buttonDisabled: {
-    backgroundColor: '#9ca3af',
+  btnDisabled: {
+    opacity: 0.6,
   },
-  buttonText: {
+  btnText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  linkButton: {
-    marginTop: 20,
+  secondaryBtn: {
+    marginTop: 24,
     alignItems: 'center',
   },
-  linkText: {
-    color: '#3b82f6',
+  secondaryBtnText: {
+    color: '#6366f1',
     fontSize: 14,
+    fontWeight: '600',
   },
 });
 
