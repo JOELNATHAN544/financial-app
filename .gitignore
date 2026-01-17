@@ -49,4 +49,7 @@ yarn-error.log*
 
 # Database
 *.db
-*.sqlite 
+*.sqlite
+
+# Vagrant
+.vagrant
