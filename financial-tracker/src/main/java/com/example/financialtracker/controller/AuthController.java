@@ -30,12 +30,21 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
+            // Email format validation
+            if (!authRequest.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Invalid email format");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
             // Password complexity validation
             String password = authRequest.getPassword();
+            // Expanded special character set as per CodeRabbit suggestion:
+            // [!@#$%^&*(),.?":{}|<>\-_=+\\[\\]\\\\/~`|;:'\"]
             if (password.length() < 8 ||
                     !password.matches(".*[a-zA-Z].*") ||
                     !password.matches(".*\\d.*") ||
-                    !password.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
+                    !password.matches(".*[!@#$%^&*(),.?\":{}|<>\\-_=+\\[\\]\\\\/~`|;:'\"].*")) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("message",
                         "Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters.");
