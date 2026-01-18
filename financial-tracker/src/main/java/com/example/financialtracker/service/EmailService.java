@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Async
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
@@ -33,6 +35,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendWelcomeEmail(String to, String username) {
         String subject = "Welcome to FinanceFlow!";
         String text = "Hello " + username + ",\n\n" +
@@ -41,6 +44,7 @@ public class EmailService {
         sendSimpleMessage(to, subject, text);
     }
 
+    @Async
     public void sendLoginAlert(String to, String username) {
         String subject = "FinanceFlow: New Login Detected";
         String text = "Hello " + username + ",\n\n" +
