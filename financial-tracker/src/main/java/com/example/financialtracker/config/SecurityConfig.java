@@ -3,7 +3,6 @@ package com.example.financialtracker.config;
 import com.example.financialtracker.filter.JwtAuthFilter;
 import com.example.financialtracker.repository.UserRepository;
 import com.example.financialtracker.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -67,8 +66,11 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    @Autowired
-    private com.example.financialtracker.security.OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final com.example.financialtracker.security.OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    public SecurityConfig(com.example.financialtracker.security.OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
