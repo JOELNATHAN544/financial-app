@@ -1,5 +1,7 @@
 package com.example.financialtracker.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -8,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     @Autowired
     private JavaMailSender mailSender;
@@ -24,7 +28,7 @@ public class EmailService {
         try {
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Error sending email to " + to + ": " + e.getMessage());
+            log.warn("Error sending email to {}: {}", to, e.getMessage(), e);
             // We don't want to block the main flow if email fails
         }
     }
