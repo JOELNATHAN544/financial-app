@@ -1,183 +1,265 @@
-import React, { useState } from 'react';
-import { api } from '../api';
-import { HiEye, HiEyeOff } from 'react-icons/hi';
+import React, { useState } from 'react'
+import { api, API_BASE_URL } from '../api'
+import { HiEye, HiEyeOff } from 'react-icons/hi'
 
 function Auth({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isLogin, setIsLogin] = useState(true)
 
   const handleAuth = async (e) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
     if (!isLogin) {
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
+        setError('Passwords do not match')
+        return
       }
 
-      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
       if (!emailRegex.test(email)) {
-        setError('Invalid email format');
-        return;
+        setError('Invalid email format')
+        return
       }
 
-      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>\\-_=+[\]\\/~`|;:'"]).{8,}$/;
+      const passwordRegex =
+        /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>\\-_=+[\]\\/~`|;:'"]).{8,}$/
       if (!passwordRegex.test(password)) {
-        setError('Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters.');
-        return;
+        setError(
+          'Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters.'
+        )
+        return
       }
     }
 
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    const payload = isLogin ? { username, password } : { username, email, password };
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register'
+    const payload = isLogin
+      ? { username, password }
+      : { username, email, password }
 
     try {
-      const data = await api.post(endpoint, payload);
+      const data = await api.post(endpoint, payload)
 
       if (isLogin) {
-        const token = data.jwt;
-        localStorage.setItem('jwtToken', token);
-        onLogin(token);
+        const token = data.jwt
+        localStorage.setItem('jwtToken', token)
+        onLogin(token)
       } else {
-        alert('Registration successful! Please log in.');
-        setIsLogin(true);
-        setUsername('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        alert('Registration successful! Please log in.')
+        setIsLogin(true)
+        setUsername('')
+        setEmail('')
+        setPassword('')
+        setConfirmPassword('')
       }
     } catch (err) {
-      setError(err.message);
-      console.error(isLogin ? 'Login error:' : 'Registration error:', err);
+      setError(err.message)
+      console.error(isLogin ? 'Login error:' : 'Registration error:', err)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {isLogin ? 'Sign in to your account' : 'Register a new account'}
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleAuth}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">Username</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020617] p-6">
+      {/* Dynamic Background Elements */}
+      <div className="absolute -left-4 top-0 h-72 w-72 animate-pulse rounded-full bg-indigo-500/10 blur-[120px]"></div>
+      <div className="absolute -right-4 bottom-0 h-96 w-96 animate-pulse rounded-full bg-purple-500/10 blur-[120px] delay-700"></div>
+
+      <div className="animate-premium-fade z-10 w-full max-w-md">
+        <div className="glass-card relative border-none p-10 shadow-2xl">
+          <div className="premium-gradient absolute left-0 top-0 h-1.5 w-full"></div>
+
+          <div className="mb-10 text-center">
+            <div className="premium-gradient group mx-auto mb-6 flex h-16 w-16 rotate-12 transform items-center justify-center rounded-3xl shadow-2xl shadow-indigo-500/20">
+              <span className="text-3xl font-black text-white">$</span>
             </div>
-            {!isLogin && (
-              <div>
-                <label htmlFor="email" className="sr-only">Email address</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            )}
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                required
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white ${isLogin ? 'rounded-b-md' : ''} focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 z-20"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <HiEyeOff className="h-5 w-5 text-gray-500" /> : <HiEye className="h-5 w-5 text-gray-500" />}
-              </button>
-            </div>
-            {!isLogin && (
-              <div className="relative">
-                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 z-20"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                >
-                  {showConfirmPassword ? <HiEyeOff className="h-5 w-5 text-gray-500" /> : <HiEye className="h-5 w-5 text-gray-500" />}
-                </button>
-              </div>
-            )}
+            <h2 className="dark:text-white text-4xl font-black tracking-tight text-slate-900">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </h2>
+            <p className="dark:text-slate-400 mt-2 font-medium text-slate-500">
+              {isLogin
+                ? 'Manage your finances with elegance'
+                : 'Start your journey to financial freedom'}
+            </p>
           </div>
 
-          {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
+          <form className="space-y-6" onSubmit={handleAuth}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                  {isLogin ? 'Username or Email' : 'Username'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="input-field"
+                  placeholder={
+                    isLogin ? 'Enter username or email' : 'Choose a username'
+                  }
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
 
-          <div>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    className="input-field"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    className="input-field pr-12"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-indigo-500"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <HiEyeOff size={20} />
+                    ) : (
+                      <HiEye size={20} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      className="input-field pr-12"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-indigo-500"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <HiEyeOff size={20} />
+                      ) : (
+                        <HiEye size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="dark:text-rose-400 animate-pulse rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-xs font-bold text-rose-600">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="interactive-button premium-gradient w-full py-3.5 text-lg shadow-xl shadow-indigo-500/20"
             >
-              {isLogin ? 'Sign in' : 'Register'}
+              {isLogin ? 'Sign In' : 'Get Started'}
+            </button>
+          </form>
+
+          <div className="mt-8">
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="dark:border-slate-800 w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs font-bold uppercase tracking-widest">
+                <span className="dark:bg-[#0f172a] bg-white px-4 text-slate-400">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() =>
+                (window.location.href = `${API_BASE_URL}/oauth2/authorization/google`)
+              }
+              className="interactive-button dark:bg-slate-900 dark:border-slate-800 mt-4 flex w-full items-center justify-center space-x-3 border border-slate-200 bg-white hover:border-indigo-500/50"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 48 48">
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
+              <span className="dark:text-slate-300 font-bold text-slate-700">
+                Log in with Google
+              </span>
             </button>
           </div>
-        </form>
-        <div className="text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setUsername('');
-              setEmail('');
-              setPassword('');
-              setConfirmPassword('');
-              setShowPassword(false);
-              setShowConfirmPassword(false);
-            }}
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            {isLogin ? 'Need an account? Register' : 'Already have an account? Sign in'}
-          </button>
+
+          <div className="mt-8 pt-2 text-center">
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin)
+                setError('')
+                setUsername('')
+                setEmail('')
+                setPassword('')
+                setConfirmPassword('')
+                setShowPassword(false)
+                setShowConfirmPassword(false)
+              }}
+              className="text-sm font-bold tracking-tight text-indigo-500 transition-colors hover:text-indigo-600"
+            >
+              {isLogin
+                ? "Don't have an account? Create one"
+                : 'Already have an account? Sign in'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Auth; 
+export default Auth

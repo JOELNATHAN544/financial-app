@@ -2,41 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --accent-primary: #6366f1;
-  --accent-secondary: #a855f7;
-}
+@layer base {
+  :root {
+    font-family:
+      'Outfit',
+      'Inter',
+      system-ui,
+      -apple-system,
+      sans-serif;
 
-[data-theme='dark'] {
-  --glass-bg: rgba(17, 24, 39, 0.7);
-  --glass-border: rgba(75, 85, 99, 0.3);
+    /* Light Mode Tokens */
+    --bg-main: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+    --accent-primary: #6366f1;
+    --accent-secondary: #8b5cf6;
+    --accent-tertiary: #ec4899;
+  }
+
+  [data-theme='dark'] {
+    /* Premium Slate Dark Mode */
+    --bg-main: #020617;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --glass-bg: rgba(15, 23, 42, 0.7);
+    --glass-border: rgba(30, 41, 59, 0.5);
+    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  body {
+    @apply m-0 min-h-screen transition-all duration-500;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+  }
 }
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-md bg-opacity-70 border border-opacity-30 rounded-2xl shadow-xl transition-all duration-300;
+    @apply border backdrop-blur-xl transition-all duration-500;
     background-color: var(--glass-bg);
     border-color: var(--glass-border);
+    box-shadow: var(--card-shadow);
   }
 
   .premium-gradient {
-    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500;
+    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white;
   }
 
   .interactive-button {
-    @apply px-6 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95;
+    @apply transform rounded-xl px-6 py-2.5 font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-2.5 placeholder-slate-400 outline-none transition-all duration-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50;
+  }
+
+  [data-theme='dark'] .input-field {
+    @apply border-slate-800 bg-slate-900/50 text-white placeholder-slate-600;
   }
 }
 
-@layer base {
-  body {
-    @apply m-0 min-h-screen transition-colors duration-500 bg-gray-50 text-gray-900;
+/* Custom Scrollbar for Dark Mode */
+[data-theme='dark'] ::-webkit-scrollbar {
+  width: 10px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 5px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 
-  [data-theme="dark"] body {
-    @apply bg-gray-900 text-gray-100;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.animate-premium-fade {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -66,6 +66,12 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    private final com.example.financialtracker.security.OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    public SecurityConfig(com.example.financialtracker.security.OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
             RestAuthenticationEntryPoint restAuthenticationEntryPoint, DaoAuthenticationProvider authenticationProvider)
@@ -74,24 +80,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(restAuthenticationEntryPoint) // Use custom entry point for
-                                                                                // unauthenticated access
-                )
+                        .authenticationEntryPoint(restAuthenticationEntryPoint))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(org.springframework.web.bind.annotation.RequestMethod.OPTIONS.name())
                         .permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Allow registration and
-                                                                                              // login without
-                                                                                              // authentication
-                        .anyRequest().authenticated() // All other requests require authentication
-                )
+                        .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(AbstractHttpConfigurer::disable) // Disable basic authentication
-                .formLogin(AbstractHttpConfigurer::disable) // Disable form login
-                .authenticationProvider(authenticationProvider) // Explicitly register the DaoAuthenticationProvider
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JwtAuthFilter before
-                                                                                             // UsernamePasswordAuthenticationFilter
-                                                                                             // for protected routes
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

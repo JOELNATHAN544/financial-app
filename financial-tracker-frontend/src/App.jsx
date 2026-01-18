@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
+import ProfileSettings from './components/ProfileSettings'
 import { api, AuthError } from './api'
 
 function App() {
@@ -10,23 +11,64 @@ function App() {
   const [finalizationHistory, setFinalizationHistory] = useState([])
   const [editingTransaction, setEditingTransaction] = useState(null)
   const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken'))
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
+  const [showSettings, setShowSettings] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'))
+  }
+
+  useEffect(() => {
+    // Handle OAuth2 callback
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    if (token) {
+      handleLogin(token)
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }, [])
 
   useEffect(() => {
     if (jwtToken) {
       fetchTransactions()
       fetchFinalizationHistory()
+      fetchUserProfile()
     }
   }, [jwtToken])
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  const fetchUserProfile = async () => {
+    try {
+      const data = await api.get('/api/users/me')
+      setUser(data)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
+  const handleLogin = (token) => {
+    localStorage.setItem('jwtToken', token)
+    setJwtToken(token)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwtToken')
+    setJwtToken(null)
+    setTransactions([])
+    setFinalizationHistory([])
+    setUser(null)
+    setShowSettings(false)
+  }
+
+  const handleDeleteAccount = () => {
+    handleLogout()
+  }
 
   const fetchTransactions = async () => {
     try {
@@ -34,129 +76,161 @@ function App() {
       setTransactions(data)
     } catch (error) {
       console.error('Error fetching transactions:', error)
-      if (error instanceof AuthError) handleLogout();
     }
   }
 
   const fetchFinalizationHistory = async () => {
     try {
-      const data = await api.get('/api/transactions/finalization-history')
+      const data = await api.get('/api/transactions/history')
       setFinalizationHistory(data)
     } catch (error) {
-      console.error('Error fetching finalization history:', error)
-      if (error instanceof AuthError) handleLogout();
+      console.error('Error fetching history:', error)
     }
   }
 
-  const handleSubmitTransaction = async (transactionData) => {
+  const handleSubmitTransaction = async (transaction) => {
     try {
       if (editingTransaction) {
-        await api.put(`/api/transactions/${editingTransaction.id}`, transactionData)
+        await api.put(`/api/transactions/${editingTransaction.id}`, transaction)
+        setEditingTransaction(null)
       } else {
-        await api.post('/api/transactions', transactionData)
+        await api.post('/api/transactions', transaction)
       }
-      await fetchTransactions()
-      setEditingTransaction(null)
+      fetchTransactions()
     } catch (error) {
       console.error('Error saving transaction:', error)
-      if (error instanceof AuthError) {
-        handleLogout();
-      } else {
-        // Just throw the error to be handled by the form component
-        throw error;
-      }
     }
   }
 
   const handleEdit = (transaction) => {
     setEditingTransaction(transaction)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`/api/transactions/${id}`)
-      await fetchTransactions()
-    } catch (error) {
-      console.error('Error deleting transaction:', error)
-      if (error instanceof AuthError) handleLogout();
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await api.delete(`/api/transactions/${id}`)
+        fetchTransactions()
+      } catch (error) {
+        console.error('Error deleting transaction:', error)
+      }
     }
   }
 
-  const handleLogin = (token) => {
-    setJwtToken(token);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('jwtToken');
-    setJwtToken(null);
-    setTransactions([]);
-    setFinalizationHistory([]);
-  };
-
   if (!jwtToken) {
-    return <Auth onLogin={handleLogin} />;
+    return <Auth onLogin={handleLogin} />
   }
 
   return (
-    <Layout onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</h2>
-        <TransactionForm
-          onSubmit={handleSubmitTransaction}
-          editingTransaction={editingTransaction}
-          setEditingTransaction={setEditingTransaction}
-        />
-        {editingTransaction && (
-          <button
-            onClick={() => setEditingTransaction(null)}
-            className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-          >
-            Cancel Edit
-          </button>
-        )}
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Current Transactions</h2>
-          <TransactionList
-            transactions={transactions}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+    <Layout
+      onLogout={handleLogout}
+      theme={theme}
+      toggleTheme={toggleTheme}
+      onShowSettings={() => setShowSettings(true)}
+    >
+      <div className="mx-auto max-w-5xl space-y-10">
+        {showSettings ? (
+          <ProfileSettings
+            user={user}
+            onUpdate={fetchUserProfile}
+            onDelete={handleDeleteAccount}
+            onCancel={() => setShowSettings(false)}
           />
-        </div>
+        ) : (
+          <div className="space-y-12">
+            <section className="glass-card group relative overflow-hidden p-10">
+              <div className="absolute right-0 top-0 -mr-16 -mt-16 h-32 w-32 rounded-full bg-indigo-500/5 transition-transform duration-700 group-hover:scale-150"></div>
+              <h2 className="dark:text-white mb-8 flex items-center text-3xl font-black tracking-tight text-slate-900">
+                <span className="mr-4 h-8 w-2 rounded-full bg-indigo-500"></span>
+                {editingTransaction ? 'Edit Transaction' : 'New Transaction'}
+              </h2>
+              <TransactionForm
+                onSubmit={handleSubmitTransaction}
+                editingTransaction={editingTransaction}
+                setEditingTransaction={setEditingTransaction}
+              />
+              {editingTransaction && (
+                <button
+                  onClick={() => setEditingTransaction(null)}
+                  className="dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 mt-6 rounded-xl bg-slate-100 px-6 py-2 font-bold text-slate-600 transition-all duration-300 hover:bg-slate-200"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </section>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Month-End History</h2>
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg dark:bg-gray-800 dark:shadow-lg">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Month/Year</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Closing Balance</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                {finalizationHistory.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {new Date(log.finalizationDate).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {log.month}/{log.year}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {Number(log.closingBalance).toLocaleString('en-CM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <section className="space-y-6">
+              <div className="flex items-end justify-between px-2">
+                <div>
+                  <h2 className="dark:text-white text-3xl font-black tracking-tight text-slate-900">
+                    Current Transactions
+                  </h2>
+                  <p className="dark:text-slate-400 mt-1 font-medium text-slate-500">
+                    Real-time financial tracking for this period
+                  </p>
+                </div>
+              </div>
+              <TransactionList
+                transactions={transactions}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </section>
+
+            <section className="space-y-6">
+              <div className="px-2">
+                <h2 className="dark:text-white text-3xl font-black tracking-tight text-slate-900">
+                  Month-End History
+                </h2>
+                <p className="dark:text-slate-400 mt-1 font-medium text-slate-500">
+                  Archived balances and finalization logs
+                </p>
+              </div>
+              <div className="glass-card overflow-hidden border-none shadow-2xl">
+                <table className="dark:divide-slate-800/50 min-w-full divide-y divide-slate-200/50">
+                  <thead className="dark:bg-slate-900/50 bg-slate-50/50">
+                    <tr>
+                      <th className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500">
+                        Date
+                      </th>
+                      <th className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500">
+                        Month/Year
+                      </th>
+                      <th className="dark:text-slate-400 px-8 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500">
+                        Closing Balance
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="dark:divide-slate-800/50 divide-y divide-slate-200/50">
+                    {finalizationHistory.map((log) => (
+                      <tr
+                        key={log.id}
+                        className="dark:hover:bg-indigo-900/10 transition-colors duration-300 hover:bg-indigo-50/30"
+                      >
+                        <td className="dark:text-slate-400 whitespace-nowrap px-8 py-5 text-sm font-medium text-slate-600">
+                          {new Date(log.finalizationDate).toLocaleString()}
+                        </td>
+                        <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-sm font-bold text-slate-900">
+                          {log.month}/{log.year}
+                        </td>
+                        <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-slate-900">
+                          {Number(log.closingBalance).toLocaleString('en-CM')}{' '}
+                          <span className="text-[10px] text-slate-400">
+                            FCFA
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   )
 }
 
 export default App
-
