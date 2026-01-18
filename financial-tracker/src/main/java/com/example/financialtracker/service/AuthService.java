@@ -48,19 +48,25 @@ public class AuthService {
     public AuthResponse authenticateUser(AuthRequest authRequest) {
         String loginIdentifier = authRequest.getUsername(); // This could be username or email
 
-        // Try to find user by username or email
-        User user = userRepository.findByUsername(loginIdentifier)
-                .or(() -> userRepository.findByEmail(loginIdentifier))
-                .orElseThrow(() -> new RuntimeException("Invalid username or email"));
+        try {
+            // Try to find user by username or email
+            User user = userRepository.findByUsername(loginIdentifier)
+                    .or(() -> userRepository.findByEmail(loginIdentifier))
+                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), authRequest.getPassword()));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), authRequest.getPassword()));
 
-        String jwt = jwtUtil.generateToken(user.getUsername());
+            String jwt = jwtUtil.generateToken(user.getUsername());
 
-        // Send login alert email
-        emailService.sendLoginAlert(user.getEmail(), user.getUsername());
+            // Send login alert email
+            emailService.sendLoginAlert(user.getEmail(), user.getUsername());
 
-        return new AuthResponse(jwt);
+            return new AuthResponse(jwt);
+        } catch (Exception e) {
+            // Catch both RuntimeException from orElseThrow and AuthenticationException from
+            // authenticate
+            throw new RuntimeException("Invalid credentials");
+        }
     }
 }
