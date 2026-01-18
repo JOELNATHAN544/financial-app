@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { api } from '../api'
 
 const ProfileSettings = ({ user, onUpdate, onDelete, onCancel }) => {
@@ -7,6 +7,7 @@ const ProfileSettings = ({ user, onUpdate, onDelete, onCancel }) => {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleUpdate = async (e) => {
     e.preventDefault()
@@ -24,6 +25,7 @@ const ProfileSettings = ({ user, onUpdate, onDelete, onCancel }) => {
       }
 
       await api.put('/api/users/me', updates)
+      setPassword('')
       setMessage('Profile updated successfully!')
       onUpdate()
     } catch (err) {
@@ -38,10 +40,12 @@ const ProfileSettings = ({ user, onUpdate, onDelete, onCancel }) => {
       )
     ) {
       try {
+        setIsDeleting(true)
         await api.delete('/api/users/me')
         onDelete()
       } catch (err) {
         setError('Failed to delete account.')
+        setIsDeleting(false)
       }
     }
   }
@@ -158,9 +162,10 @@ const ProfileSettings = ({ user, onUpdate, onDelete, onCancel }) => {
       <div className="dark:border-slate-800 mt-12 flex flex-col items-center border-t border-slate-100 pt-8">
         <button
           onClick={handleDelete}
-          className="text-sm font-bold uppercase tracking-tight text-rose-500 transition-all duration-300 hover:text-rose-600 hover:underline"
+          disabled={isDeleting}
+          className="text-sm font-bold uppercase tracking-tight text-rose-500 transition-all duration-300 hover:text-rose-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Permanently Delete Account
+          {isDeleting ? 'Deleting...' : 'Permanently Delete Account'}
         </button>
         <p className="mt-2 text-[10px] text-slate-400">
           This action is irreversible and will delete all your financial data.
