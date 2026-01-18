@@ -48,25 +48,26 @@ public class AuthService {
     public AuthResponse authenticateUser(AuthRequest authRequest) {
         String loginIdentifier = authRequest.getUsername(); // This could be username or email
 
-        try {
-            // Try to find user by username or email
-            User user = userRepository.findByUsername(loginIdentifier)
-                    .or(() -> userRepository.findByEmail(loginIdentifier))
-                    .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        // 1. User lookup outside the try-catch for authentication
+        User user = userRepository.findByUsername(loginIdentifier)
+                .or(() -> userRepository.findByEmail(loginIdentifier))
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
+        // 2. Wrap only the authentication call to handle credential failures
+        try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUsername(), authRequest.getPassword()));
-
-            String jwt = jwtUtil.generateToken(user.getUsername());
-
-            // Send login alert email
-            emailService.sendLoginAlert(user.getEmail(), user.getUsername());
-
-            return new AuthResponse(jwt);
-        } catch (Exception e) {
-            // Catch both RuntimeException from orElseThrow and AuthenticationException from
-            // authenticate
+        } catch (org.springframework.security.core.AuthenticationException e) {
             throw new RuntimeException("Invalid credentials");
         }
+
+        // 3. Generate JWT after successful authentication
+        String jwt = jwtUtil.generateToken(user.getUsername());
+
+        // 4. Send login alert email (fails silently as it's non-blocking in
+        // EmailService)
+        emailService.sendLoginAlert(user.getEmail(), user.getUsername());
+
+        return new AuthResponse(jwt);
     }
 }
