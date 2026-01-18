@@ -98,7 +98,6 @@ const TransactionForm = ({
       }
     } catch (error) {
       setErrors({ submit: error.message })
-      throw error // Re-throw so App.jsx can handle logout
     } finally {
       setIsSubmitting(false)
     }
