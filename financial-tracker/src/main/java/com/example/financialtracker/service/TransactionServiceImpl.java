@@ -133,7 +133,9 @@ public class TransactionServiceImpl implements TransactionService {
         // existing original
         // This logic is tricky on updates. If user updates amount, they are providing
         // it in the transaction's currency.
-        BigDecimal originalAmount = creditToSet.compareTo(BigDecimal.ZERO) > 0 ? creditToSet : debitToSet;
+        BigDecimal safeCredit = creditToSet != null ? creditToSet : BigDecimal.ZERO;
+        BigDecimal safeDebit = debitToSet != null ? debitToSet : BigDecimal.ZERO;
+        BigDecimal originalAmount = safeCredit.compareTo(BigDecimal.ZERO) > 0 ? safeCredit : safeDebit;
         transaction.setOriginalAmount(originalAmount);
 
         if (!"XAF".equalsIgnoreCase(currency)) {

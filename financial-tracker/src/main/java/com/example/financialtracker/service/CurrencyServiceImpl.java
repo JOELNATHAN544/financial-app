@@ -88,16 +88,14 @@ public class CurrencyServiceImpl implements CurrencyService {
             logger.error("Error fetching currencies: {}", e.getMessage());
         }
 
-        // Add XAF manually if not present
-        if (!currencies.containsKey("XAF")) {
-            currencies.put("XAF", "Central African CFA Franc");
-        }
-
         // Fallback for offline dev
         if (currencies.isEmpty()) {
             currencies.put("USD", "United States Dollar");
             currencies.put("EUR", "Euro");
             currencies.put("GBP", "British Pound");
+            currencies.put("XAF", "Central African CFA Franc");
+        } else if (!currencies.containsKey("XAF")) {
+            // Add XAF manually if not present in API response
             currencies.put("XAF", "Central African CFA Franc");
         }
         return currencies;
