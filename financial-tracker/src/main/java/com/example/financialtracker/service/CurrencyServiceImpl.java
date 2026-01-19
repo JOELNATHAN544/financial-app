@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,10 +20,17 @@ import java.util.TreeMap;
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 
+    private static final Logger logger = LoggerFactory.getLogger(CurrencyServiceImpl.class);
+
     @Value("${app.currency.api-url:https://api.frankfurter.app}")
     private String apiUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public CurrencyServiceImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Override
     @Cacheable(value = "rates", key = "#from + '-' + #to")
@@ -51,10 +61,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         try {
             JsonNode response = restTemplate.getForObject(url, JsonNode.class);
             if (response != null && response.has("rates")) {
-                return BigDecimal.valueOf(response.get("rates").get(to).asDouble());
+                // Use new BigDecimal(String) to avoid precision loss from double
+                return new BigDecimal(response.get("rates").get(to).asText());
             }
         } catch (Exception e) {
-            System.err.println("Error fetching exchange rate: " + e.getMessage());
+            logger.error("Error fetching exchange rate from {} to {}: {}", from, to, e.getMessage());
         }
         throw new RuntimeException("Unable to fetch exchange rate for " + from + " to " + to);
     }
@@ -74,7 +85,7 @@ public class CurrencyServiceImpl implements CurrencyService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error fetching currencies: " + e.getMessage());
+            logger.error("Error fetching currencies: {}", e.getMessage());
         }
 
         // Add XAF manually if not present
