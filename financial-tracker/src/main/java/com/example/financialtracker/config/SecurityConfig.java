@@ -3,6 +3,7 @@ package com.example.financialtracker.config;
 import com.example.financialtracker.filter.JwtAuthFilter;
 import com.example.financialtracker.repository.UserRepository;
 import com.example.financialtracker.util.JwtUtil;
+import com.example.financialtracker.security.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -74,7 +75,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
-            RestAuthenticationEntryPoint restAuthenticationEntryPoint, DaoAuthenticationProvider authenticationProvider)
+            RestAuthenticationEntryPoint restAuthenticationEntryPoint, DaoAuthenticationProvider authenticationProvider,
+            RateLimitFilter rateLimitFilter)
             throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -92,6 +94,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider)
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
