@@ -10,8 +10,12 @@ export default [
     languageOptions: {
       ecmaVersion: 2020,
       globals: {
-        ...globals.browser,
-        ...globals.node,
+        ...Object.fromEntries(
+          Object.entries({
+            ...globals.browser,
+            ...globals.node,
+          }).map(([key, value]) => [key.trim(), value])
+        ),
       },
       parserOptions: {
         ecmaVersion: 'latest',
