@@ -98,14 +98,32 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
                     {transaction.usedFor}
                   </td>
                   <td className="dark:text-emerald-400 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-emerald-600">
-                    {transaction.credit
-                      ? `${Number(transaction.credit).toLocaleString('en-CM')} FCFA`
-                      : '—'}
+                    {transaction.credit ? (
+                      <div className="flex flex-col items-end">
+                        <span>{Number(transaction.credit).toLocaleString('en-CM')} FCFA</span>
+                        {transaction.currency && transaction.currency !== 'XAF' && (
+                          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                            ~ {Number(transaction.originalAmount).toLocaleString('en-US', { style: 'currency', currency: transaction.currency })}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="dark:text-rose-400 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-rose-600">
-                    {transaction.debit
-                      ? `${Number(transaction.debit).toLocaleString('en-CM')} FCFA`
-                      : '—'}
+                    {transaction.debit ? (
+                      <div className="flex flex-col items-end">
+                        <span>{Number(transaction.debit).toLocaleString('en-CM')} FCFA</span>
+                        {transaction.currency && transaction.currency !== 'XAF' && (
+                          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                            ~ {Number(transaction.originalAmount).toLocaleString('en-US', { style: 'currency', currency: transaction.currency })}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-slate-900">
                     {!isNaN(displayBalance)
