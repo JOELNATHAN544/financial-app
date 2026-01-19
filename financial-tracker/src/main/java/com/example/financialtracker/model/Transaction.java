@@ -35,6 +35,12 @@ public class Transaction {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(length = 3)
+    private String currency = "XAF";
+
+    @Column
+    private BigDecimal originalAmount;
+
     public Long getId() {
         return id;
     }
@@ -105,5 +111,21 @@ public class Transaction {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
     }
 }
