@@ -8,7 +8,10 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+		org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
+		org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
+})
 @EntityScan("com.example.financialtracker.model")
 @EnableJpaRepositories("com.example.financialtracker.repository")
 @EnableScheduling
