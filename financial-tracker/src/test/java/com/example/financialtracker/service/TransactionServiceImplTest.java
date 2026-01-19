@@ -88,6 +88,9 @@ class TransactionServiceImplTest {
         savedTx.setId(1L);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTx);
         when(transactionRepository.findById(1L)).thenReturn(Optional.of(savedTx));
+
+        // Mock for recalculation
+        when(monthlySummaryRepository.findTopByUserOrderByMonthYearDesc(any())).thenReturn(Optional.empty());
         // Mock Empty list for recalculation to avoid NPE if logic iterates
         when(transactionRepository.findAllByUserAndFinalizedOrderByDateAscIdAsc(any(), eq(false)))
                 .thenReturn(new ArrayList<>());
