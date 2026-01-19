@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ public class ReportController {
     private UserService userService;
 
     @GetMapping("/expense-by-category")
+    @Cacheable(value = "reports", key = "#userDetails.username + '-' + #month + '-' + #year")
     public ResponseEntity<List<Map<String, Object>>> getExpensesByCategory(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) Integer month,
@@ -53,6 +55,7 @@ public class ReportController {
     }
 
     @GetMapping("/monthly-summary")
+    @Cacheable(value = "reports", key = "#userDetails.username + '-' + #month + '-' + #year + '-summary'")
     public ResponseEntity<List<Map<String, Object>>> getMonthlySummary(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) Integer month,
@@ -66,7 +69,7 @@ public class ReportController {
 
         List<Map<String, Object>> response = results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("date", result[0].toString()); // Date
+            map.put("date", result[0] != null ? result[0].toString() : ""); // Date
             map.put("amount", result[1]); // Total amount
             return map;
         }).collect(Collectors.toList());
