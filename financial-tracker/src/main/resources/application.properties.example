@@ -26,4 +26,9 @@ spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_
 spring.security.oauth2.client.registration.google.scope=profile,email
 
 # OAuth2 Redirect URI (Frontend callback)
+# OAuth2 Redirect URI (Frontend callback)
 app.oauth2.redirectUri=${OAUTH2_REDIRECT_URI:http://localhost:5173/oauth2/callback}
+
+# Redis Configuration
+spring.data.redis.host=${REDIS_HOST:localhost}
+spring.data.redis.port=${REDIS_PORT:6379}
