@@ -94,8 +94,10 @@ public class TransactionServiceImpl implements TransactionService {
         recalculateBalances(user);
 
         // Check for budget alerts if it's an expense
-        if (transaction.getDebit() != null && transaction.getDebit().compareTo(BigDecimal.ZERO) > 0) {
-            budgetService.checkBudgetAlert(user, transaction.getUsedFor(), transaction.getDebit());
+        if (transaction.getDebit() != null && transaction.getDebit().compareTo(BigDecimal.ZERO) > 0
+                && budgetService != null) {
+            String category = transaction.getCategory() != null ? transaction.getCategory() : "Others";
+            budgetService.checkBudgetAlert(user, category, transaction.getDebit());
         }
 
         // Return the updated transaction from DB
@@ -159,6 +161,7 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setDate(transactionDetails.getDate());
         }
         transaction.setUsedFor(transactionDetails.getUsedFor());
+        transaction.setCategory(transactionDetails.getCategory());
         transaction.setCredit(creditToSet);
         transaction.setDebit(debitToSet);
 

@@ -8,6 +8,7 @@ const TransactionForm = ({
 }) => {
   const [formData, setFormData] = useState({
     usedFor: '',
+    category: 'Others',
     credit: '',
     debit: '',
     currency: 'XAF',
@@ -35,6 +36,7 @@ const TransactionForm = ({
     if (editingTransaction) {
       setFormData({
         usedFor: editingTransaction.usedFor || '',
+        category: editingTransaction.category || 'Others',
         credit: editingTransaction.credit
           ? String(editingTransaction.credit)
           : '',
@@ -45,6 +47,7 @@ const TransactionForm = ({
       // Clear form if no transaction is being edited
       setFormData({
         usedFor: '',
+        category: 'Others',
         credit: '',
         debit: '',
         currency: 'XAF',
@@ -107,6 +110,7 @@ const TransactionForm = ({
       // Reset form after successful submission
       setFormData({
         usedFor: '',
+        category: 'Others',
         credit: '',
         debit: '',
         currency: 'XAF',
@@ -132,11 +136,8 @@ const TransactionForm = ({
           </label>
           <select
             name="category"
-            value={categories.includes(formData.usedFor) ? formData.usedFor : 'Others'}
-            onChange={(e) => {
-              const val = e.target.value;
-              setFormData(prev => ({ ...prev, usedFor: val }));
-            }}
+            value={formData.category}
+            onChange={handleChange}
             className="input-field"
           >
             {categories.map(c => (

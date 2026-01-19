@@ -59,7 +59,8 @@ public class BudgetServiceImpl implements BudgetService {
         Map<String, BigDecimal> categoryExpenses = expenseData.stream()
                 .collect(Collectors.toMap(
                         row -> (String) row[0],
-                        row -> (BigDecimal) row[1]));
+                        row -> (BigDecimal) row[1],
+                        BigDecimal::add));
 
         return budgets.stream().map(b -> {
             Map<String, Object> status = new HashMap<>();

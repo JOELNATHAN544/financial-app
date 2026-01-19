@@ -20,6 +20,9 @@ public class Transaction {
     private String usedFor;
 
     @Column
+    private String category;
+
+    @Column
     private BigDecimal credit;
 
     @Column
@@ -71,6 +74,14 @@ public class Transaction {
 
     public void setUsedFor(String usedFor) {
         this.usedFor = usedFor;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public BigDecimal getCredit() {

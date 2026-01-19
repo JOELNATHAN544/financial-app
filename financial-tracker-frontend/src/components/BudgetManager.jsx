@@ -94,7 +94,7 @@ const BudgetManager = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="rounded-lg bg-indigo-600 px-6 py-2.5 font-medium text-white transition-all hover:bg-indigo-50 offensive:opacity-50 disabled:cursor-not-allowed md:w-auto"
+                        className="rounded-lg bg-indigo-600 px-6 py-2.5 font-medium text-white transition-all hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed md:w-auto"
                     >
                         {isSubmitting ? 'Setting...' : 'Set Budget'}
                     </button>

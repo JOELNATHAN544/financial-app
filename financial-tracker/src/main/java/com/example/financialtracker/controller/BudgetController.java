@@ -42,12 +42,21 @@ public class BudgetController {
     @PostMapping
     public ResponseEntity<Budget> setBudget(@RequestBody Map<String, Object> payload) {
         User user = getCurrentUser();
+        if (!payload.containsKey("category") || !payload.containsKey("amount")) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         String category = (String) payload.get("category");
-        BigDecimal amount = new BigDecimal(payload.get("amount").toString());
-
+        BigDecimal amount;
+        try {
+            amount = new BigDecimal(payload.get("amount").toString());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         LocalDate now = LocalDate.now();
-        int month = payload.containsKey("month") ? (int) payload.get("month") : now.getMonthValue();
-        int year = payload.containsKey("year") ? (int) payload.get("year") : now.getYear();
+        int month = payload.containsKey("month") ? Integer.parseInt(payload.get("month").toString()) : now.getMonthValue();
+        int year = payload.containsKey("year") ? Integer.parseInt(payload.get("year").toString()) : now.getYear();
 
         return ResponseEntity.ok(budgetService.setBudget(user, category, amount, month, year));
     }

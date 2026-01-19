@@ -62,9 +62,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
 
         // Redirect back to frontend with tokens
-        // Use query parameters so App.jsx can find them via URLSearchParams
-        // 
-        String targetUrl = oauth2RedirectUri + "?token=" + token + "&refreshToken=" + refreshToken;
+        // Use fragment (#) instead of query (?) for better security
+        String targetUrl = oauth2RedirectUri + "#token=" + token + "&refreshToken=" + refreshToken;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
