@@ -5,6 +5,7 @@ import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
 import ProfileSettings from './components/ProfileSettings'
 import Dashboard from './components/Dashboard'
+import BudgetManager from './components/BudgetManager'
 import { api, AuthError } from './api'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
   const [showSettings, setShowSettings] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
+  const [showBudgets, setShowBudgets] = useState(false)
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -31,16 +33,19 @@ function App() {
   }
 
   useEffect(() => {
-    // Handle OAuth2 callback
+    // Handle OAuth2 callback - checking both query params and hash fragment
     const urlParams = new URLSearchParams(window.location.search)
-    const token = urlParams.get('token')
-    const refreshToken = urlParams.get('refreshToken')
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+
+    const token = urlParams.get('token') || hashParams.get('token')
+    const refreshToken = urlParams.get('refreshToken') || hashParams.get('refreshToken')
+
     if (token) {
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken)
       }
       handleLogin(token)
-      // Clean up URL
+      // Clean up URL (both search and hash)
       window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [])
@@ -75,6 +80,7 @@ function App() {
     setUser(null)
     setShowSettings(false)
     setShowDashboard(false)
+    setShowBudgets(false)
   }
 
   const handleDeleteAccount = () => {
@@ -138,8 +144,9 @@ function App() {
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
-      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); }}
-      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); }}
+      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); }}
+      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); }}
+      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); }}
     >
       <div className="mx-auto max-w-5xl space-y-10">
         {showSettings ? (
@@ -151,6 +158,8 @@ function App() {
           />
         ) : showDashboard ? (
           <Dashboard onBack={() => setShowDashboard(false)} />
+        ) : showBudgets ? (
+          <BudgetManager />
         ) : (
           <div className="space-y-12">
             <section className="glass-card group relative overflow-hidden p-10">

@@ -50,7 +50,6 @@ public class TransactionController {
         System.out.println("[API] POST /api/transactions reached for user: "
                 + (userDetails != null ? userDetails.getUsername() : "NULL"));
         User user = getAuthenticatedUser(userDetails);
-        transaction.setUser(user);
         Transaction newTransaction = transactionService.createTransaction(transaction, user);
         return new ResponseEntity<>(newTransaction, HttpStatus.CREATED);
     }

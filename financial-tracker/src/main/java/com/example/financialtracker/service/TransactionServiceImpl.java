@@ -37,6 +37,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private CurrencyService currencyService;
 
+    @Autowired
+    private BudgetService budgetService;
+
     @Override
     public List<Transaction> getAllTransactions(User user) {
         // Only return current (non-finalized) transactions for the main list
@@ -48,6 +51,13 @@ public class TransactionServiceImpl implements TransactionService {
     @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     @CacheEvict(value = "reports", allEntries = true)
     public Transaction createTransaction(Transaction transaction, User user) {
+        transaction.setUser(user);
+        if (transaction.getDate() == null) {
+            transaction.setDate(LocalDate.now());
+        }
+        transaction.setFinalized(false);
+        transaction.setBalance(java.math.BigDecimal.ZERO); // Temporary balance to satisfy NOT NULL constraint
+
         // Validate that at least one of credit or debit is non-zero
         BigDecimal credit = transaction.getCredit() != null ? transaction.getCredit() : BigDecimal.ZERO;
         BigDecimal debit = transaction.getDebit() != null ? transaction.getDebit() : BigDecimal.ZERO;
@@ -76,19 +86,19 @@ public class TransactionServiceImpl implements TransactionService {
             }
         }
 
-        if (transaction.getDate() == null) {
-            transaction.setDate(LocalDate.now());
-        }
-        transaction.setUser(user);
-        transaction.setFinalized(false);
-        transaction.setBalance(java.math.BigDecimal.ZERO); // Temporary balance to satisfy NOT NULL constraint
-
         // Initial save to get an ID
         Transaction saved = transactionRepository.save(transaction);
 
         // Recalculate all balances to ensure consistency, especially if adding to a
         // past date
         recalculateBalances(user);
+
+        // Check for budget alerts if it's an expense
+        if (transaction.getDebit() != null && transaction.getDebit().compareTo(BigDecimal.ZERO) > 0
+                && budgetService != null) {
+            String category = transaction.getCategory() != null ? transaction.getCategory() : "Others";
+            budgetService.checkBudgetAlert(user, category, transaction.getDebit());
+        }
 
         // Return the updated transaction from DB
         return transactionRepository.findById(saved.getId())
@@ -151,6 +161,7 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setDate(transactionDetails.getDate());
         }
         transaction.setUsedFor(transactionDetails.getUsedFor());
+        transaction.setCategory(transactionDetails.getCategory());
         transaction.setCredit(creditToSet);
         transaction.setDebit(debitToSet);
 

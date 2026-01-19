@@ -7,19 +7,22 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#3b82f6'
 const Dashboard = ({ onBack }) => {
     const [categoryData, setCategoryData] = useState([]);
     const [trendData, setTrendData] = useState([]);
+    const [budgets, setBudgets] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let isMounted = true;
         const fetchData = async () => {
             try {
-                const [categories, trends] = await Promise.all([
+                const [categories, trends, budgetData] = await Promise.all([
                     api.get('/api/reports/expense-by-category'),
-                    api.get('/api/reports/monthly-summary')
+                    api.get('/api/reports/monthly-summary'),
+                    api.get('/api/budgets/current')
                 ]);
                 if (isMounted) {
                     setCategoryData(categories);
                     setTrendData(trends);
+                    setBudgets(budgetData);
                 }
             } catch (error) {
                 console.error('Failed to load dashboard data', error);
@@ -93,6 +96,35 @@ const Dashboard = ({ onBack }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Budget Progress Section */}
+            {budgets.length > 0 && (
+                <div className="glass-card p-6">
+                    <h3 className="text-xl font-bold mb-6 text-slate-700 dark:text-slate-200">Monthly Budget Progress</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {budgets.map(b => (
+                            <div key={b.category} className="space-y-3">
+                                <div className="flex justify-between items-end">
+                                    <span className="font-semibold text-slate-900 dark:text-white">{b.category}</span>
+                                    <span className={`text-xs font-bold ${b.percent > 100 ? 'text-rose-500' : 'text-indigo-400'}`}>
+                                        {b.percent}%
+                                    </span>
+                                </div>
+                                <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ${b.percent > 100 ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]' : 'bg-indigo-500'}`}
+                                        style={{ width: `${Math.min(b.percent, 100)}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-slate-500 font-mono tracking-tighter">
+                                    <span>{b.actual.toLocaleString()} / {b.budgeted.toLocaleString()} FCFA</span>
+                                    {b.percent > 100 && <span className="text-rose-500 font-bold uppercase">Overbought</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

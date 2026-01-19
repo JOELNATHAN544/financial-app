@@ -35,6 +35,9 @@ class TransactionServiceImplTest {
     @Mock
     private CurrencyService currencyService;
 
+    @Mock
+    private BudgetService budgetService;
+
     @InjectMocks
     private TransactionServiceImpl transactionService;
 
