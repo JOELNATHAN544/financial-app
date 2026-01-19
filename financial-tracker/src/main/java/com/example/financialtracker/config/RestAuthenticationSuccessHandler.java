@@ -1,6 +1,7 @@
 package com.example.financialtracker.config;
 
 import com.example.financialtracker.payload.AuthResponse;
+import com.example.financialtracker.service.RefreshTokenService;
 import com.example.financialtracker.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -20,17 +21,21 @@ public class RestAuthenticationSuccessHandler implements AuthenticationSuccessHa
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
+    private RefreshTokenService refreshTokenService;
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtUtil.generateToken(userDetails.getUsername());
+        String refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername()).getToken();
 
-        AuthResponse authResponse = new AuthResponse(jwt);
+        AuthResponse authResponse = new AuthResponse(jwt, refreshToken);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.getWriter().write(objectMapper.writeValueAsString(authResponse));
     }
-} 
+}

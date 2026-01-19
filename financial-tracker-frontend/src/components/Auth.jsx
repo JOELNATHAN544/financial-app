@@ -48,15 +48,17 @@ function Auth({ onLogin }) {
 
       if (isLogin) {
         const token = data.jwt
+        const refreshToken = data.refreshToken
         localStorage.setItem('jwtToken', token)
+        localStorage.setItem('refreshToken', refreshToken)
         onLogin(token)
       } else {
-        alert('Registration successful! Please log in.')
-        setIsLogin(true)
-        setUsername('')
-        setEmail('')
-        setPassword('')
-        setConfirmPassword('')
+        // Store tokens after registration
+        const token = data.jwt
+        const refreshToken = data.refreshToken
+        localStorage.setItem('jwtToken', token)
+        localStorage.setItem('refreshToken', refreshToken)
+        onLogin(token)
       }
     } catch (err) {
       setError(err.message)

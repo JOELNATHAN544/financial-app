@@ -2,6 +2,7 @@ package com.example.financialtracker.security;
 
 import com.example.financialtracker.model.User;
 import com.example.financialtracker.repository.UserRepository;
+import com.example.financialtracker.service.RefreshTokenService;
 import com.example.financialtracker.util.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @Autowired
     private UserRepository userRepository;
@@ -51,9 +55,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         });
 
         String token = jwtUtil.generateToken(user.getUsername());
+        String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
 
-        // Redirect back to frontend with token
-        String targetUrl = "http://localhost:5173/oauth2/callback?token=" + token;
+        // Redirect back to frontend with tokens
+        String targetUrl = "http://localhost:5173/oauth2/callback?token=" + token + "&refreshToken=" + refreshToken;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
