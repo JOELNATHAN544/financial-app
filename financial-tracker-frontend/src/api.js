@@ -71,7 +71,7 @@ const apiFetch = async (endpoint, options = {}) => {
               return res.json()
             })
           })
-          .catch((err) => {
+          .catch(() => {
             throw new AuthError()
           })
       }
