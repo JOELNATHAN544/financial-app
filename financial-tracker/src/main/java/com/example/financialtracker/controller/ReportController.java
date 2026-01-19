@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -76,6 +78,14 @@ public class ReportController {
         LocalDate now = LocalDate.now();
         int y = year != null ? year : now.getYear();
         int m = month != null ? month : now.getMonthValue();
+
+        if (m < 1 || m > 12) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Month must be between 1 and 12");
+        }
+        if (y < 2000 || y > 3000) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Year must be between 2000 and 3000");
+        }
+
         return LocalDate.of(y, m, 1);
     }
 

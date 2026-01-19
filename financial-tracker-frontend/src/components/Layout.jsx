@@ -61,6 +61,7 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShow
                 onClick={onShowDashboard}
                 className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
                 title="Financial Dashboard"
+                aria-label="Financial Dashboard"
               >
                 <FiPieChart size={20} />
               </button>

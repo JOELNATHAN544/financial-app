@@ -10,21 +10,27 @@ const Dashboard = ({ onBack }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
         const fetchData = async () => {
             try {
                 const [categories, trends] = await Promise.all([
                     api.get('/api/reports/expense-by-category'),
                     api.get('/api/reports/monthly-summary')
                 ]);
-                setCategoryData(categories);
-                setTrendData(trends);
+                if (isMounted) {
+                    setCategoryData(categories);
+                    setTrendData(trends);
+                }
             } catch (error) {
                 console.error('Failed to load dashboard data', error);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
         fetchData();
+        return () => { isMounted = false; };
     }, []);
 
     if (loading) return <div className="p-10 text-center dark:text-white">Loading analytics...</div>;
