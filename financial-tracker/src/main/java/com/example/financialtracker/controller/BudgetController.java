@@ -16,11 +16,15 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
-@RequiredArgsConstructor
 public class BudgetController {
 
     private final BudgetService budgetService;
     private final UserRepository userRepository;
+
+    public BudgetController(BudgetService budgetService, UserRepository userRepository) {
+        this.budgetService = budgetService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping("/current")
     public ResponseEntity<List<Map<String, Object>>> getCurrentBudgetStatus(
