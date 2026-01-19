@@ -14,6 +14,8 @@ const TransactionForm = ({
   })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [voiceDebug, setVoiceDebug] = useState('')
 
   // Effect to populate form when editingTransaction changes
   useEffect(() => {
@@ -132,6 +134,177 @@ const TransactionForm = ({
           </p>
         )}
       </div>
+
+      {/* Voice Input Section */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => {
+            if (isListening) {
+              setIsListening(false)
+              return
+            }
+
+            const SpeechRecognition =
+              window.SpeechRecognition || window.webkitSpeechRecognition
+
+            if (!SpeechRecognition) {
+              alert('Your browser does not support voice input.')
+              return
+            }
+
+            const recognition = new SpeechRecognition()
+            recognition.continuous = false
+            recognition.interimResults = false
+            recognition.lang = 'en-US'
+
+            recognition.onstart = () => {
+              setIsListening(true)
+              setVoiceDebug('Listening...')
+            }
+            recognition.onend = () => setIsListening(false)
+            recognition.onerror = (event) => {
+              console.error('Speech recognition error', event.error)
+              setIsListening(false)
+              if (event.error === 'network') {
+                setVoiceDebug('Error: Network (Check Internet/Browser)')
+              } else if (event.error === 'not-allowed') {
+                setVoiceDebug('Error: Mic Permission Denied')
+              } else {
+                setVoiceDebug(`Error: ${event.error}`)
+              }
+            }
+
+            recognition.onresult = (event) => {
+              const transcript = event.results[0][0].transcript.toLowerCase()
+              console.log('Voice transcript:', transcript)
+              setVoiceDebug(`Heard: "${transcript}"`)
+
+              // Parsing Logic
+              // 1. Amount Extraction (Robust)
+              // First, normalize text: remove commas in numbers, convert words to numbers
+              let normalizedTranscript = transcript.replace(/,/g, '') // "200,000" -> "200000"
+
+              // Word multipliers
+              normalizedTranscript = normalizedTranscript
+                .replace(/(\d+)\s*k\b/g, (match, p1) => parseInt(p1) * 1000)
+                .replace(/(\d+)\s*thousand\b/g, (match, p1) => parseInt(p1) * 1000)
+                .replace(/(\d+)\s*million\b/g, (match, p1) => parseInt(p1) * 1000000)
+
+              // Simple word-to-digit for small numbers if needed, but "one million" usually comes as "1 million" from API. 
+              // If API sends "one million", we might need a library, but let's handle "a million" or "one million" simply if common.
+              // For now assuming digits.
+
+              const amountMatch = normalizedTranscript.match(/(\d+(?:\.\d{1,2})?)/)
+              const amount = amountMatch ? amountMatch[0] : ''
+
+              // 2. Currency
+              let currency = 'XAF'
+              if (normalizedTranscript.includes('dollar') || normalizedTranscript.includes('usd'))
+                currency = 'USD'
+              else if (normalizedTranscript.includes('euro') || normalizedTranscript.includes('eur'))
+                currency = 'EUR'
+              else if (
+                normalizedTranscript.includes('pound') ||
+                normalizedTranscript.includes('gbp')
+              )
+                currency = 'GBP'
+
+              // 3. Type (Credit/Debit)
+              let isCredit = false
+              if (
+                normalizedTranscript.includes('received') ||
+                normalizedTranscript.includes('receive') ||
+                normalizedTranscript.includes('got') ||
+                normalizedTranscript.includes('income') ||
+                normalizedTranscript.includes('earned') ||
+                normalizedTranscript.includes('salary') ||
+                normalizedTranscript.includes('deposit')
+              ) {
+                isCredit = true
+              }
+
+              // 4. Description extraction strategy
+              let description = transcript
+              const expenseSplit = transcript.split(/\s(on|for)\s/)
+              if (!isCredit && expenseSplit.length > 1) {
+                description = expenseSplit[expenseSplit.length - 1]
+              }
+
+              const incomeSplit = transcript.split(/\s(from|of)\s/)
+              if (isCredit && incomeSplit.length > 1) {
+                description = incomeSplit[incomeSplit.length - 1]
+              }
+
+              // Cleanup description (remove punctuation at end)
+              description = description.replace(/[.,!?]$/, '')
+              // Capitalize first letter
+              description =
+                description.charAt(0).toUpperCase() + description.slice(1)
+
+              // Update debug detected info
+              setVoiceDebug(`Heard: "${transcript}" → ${isCredit ? 'Income' : 'Expense'}`)
+
+              setFormData((prev) => ({
+                ...prev,
+                usedFor: description,
+                currency: currency,
+                credit: isCredit ? amount : '',
+                debit: !isCredit ? amount : '',
+              }))
+            }
+
+            recognition.start()
+          }}
+          className={`flex items-center space-x-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${isListening
+            ? 'bg-rose-500 text-white animate-pulse'
+            : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-slate-700 dark:text-indigo-400 dark:hover:bg-slate-600'
+            }`}
+        >
+          {isListening ? (
+            <>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                />
+              </svg>
+              <span>Listening...</span>
+            </>
+          ) : (
+            <>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                />
+              </svg>
+              <span>Voice Input</span>
+            </>
+          )}
+        </button>
+      </div>
+      {voiceDebug && <p className="text-xs text-right text-slate-500 mt-1">{voiceDebug}</p>}
 
       <div className="space-y-2">
         <label
