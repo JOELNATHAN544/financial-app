@@ -17,6 +17,19 @@ const TransactionForm = ({
   const [isListening, setIsListening] = useState(false)
   const [voiceDebug, setVoiceDebug] = useState('')
 
+  const categories = [
+    'Food',
+    'Transport',
+    'Rent',
+    'Utilities',
+    'Entertainment',
+    'Shopping',
+    'Health',
+    'Investment',
+    'Education',
+    'Others',
+  ]
+
   // Effect to populate form when editingTransaction changes
   useEffect(() => {
     if (editingTransaction) {
@@ -112,27 +125,48 @@ const TransactionForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="animate-premium-fade space-y-6">
-      <div className="space-y-2">
-        <label
-          htmlFor="usedFor"
-          className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
-        >
-          Description
-        </label>
-        <input
-          type="text"
-          id="usedFor"
-          name="usedFor"
-          value={formData.usedFor}
-          onChange={handleChange}
-          className={`input-field ${errors.usedFor ? 'border-rose-500 ring-2 ring-rose-500/20' : ''}`}
-          placeholder="What was this transaction for?"
-        />
-        {errors.usedFor && (
-          <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
-            {errors.usedFor}
-          </p>
-        )}
+      <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+        <div className="space-y-2">
+          <label className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700">
+            Category
+          </label>
+          <select
+            name="category"
+            value={categories.includes(formData.usedFor) ? formData.usedFor : 'Others'}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFormData(prev => ({ ...prev, usedFor: val }));
+            }}
+            className="input-field"
+          >
+            {categories.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="usedFor"
+            className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
+          >
+            Detailed Description
+          </label>
+          <input
+            type="text"
+            id="usedFor"
+            name="usedFor"
+            value={formData.usedFor}
+            onChange={handleChange}
+            className={`input-field ${errors.usedFor ? 'border-rose-500 ring-2 ring-rose-500/20' : ''}`}
+            placeholder="What was this for?"
+          />
+          {errors.usedFor && (
+            <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
+              {errors.usedFor}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Voice Input Section */}
