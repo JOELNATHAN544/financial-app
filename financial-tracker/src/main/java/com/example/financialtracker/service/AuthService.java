@@ -27,9 +27,12 @@ public class AuthService {
     private JwtUtil jwtUtil;
 
     @Autowired
+    private RefreshTokenService refreshTokenService;
+
+    @Autowired
     private EmailService emailService;
 
-    public User registerUser(User user) {
+    public AuthResponse registerUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
@@ -42,7 +45,18 @@ public class AuthService {
         // Send welcome email
         emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
 
-        return savedUser;
+        String jwt = jwtUtil.generateToken(savedUser.getUsername());
+        String refreshToken = refreshTokenService.createRefreshToken(savedUser.getUsername()).getToken();
+
+        return new AuthResponse(jwt, refreshToken);
+    }
+
+    public String generateAccessToken(String username) {
+        return jwtUtil.generateToken(username);
+    }
+
+    public String extractUsername(String token) {
+        return jwtUtil.extractUsername(token);
     }
 
     public AuthResponse authenticateUser(AuthRequest authRequest) {
@@ -64,10 +78,13 @@ public class AuthService {
         // 3. Generate JWT after successful authentication
         String jwt = jwtUtil.generateToken(user.getUsername());
 
-        // 4. Send login alert email (fails silently as it's non-blocking in
+        // 4. Create Refresh Token
+        String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
+
+        // 5. Send login alert email (fails silently as it's non-blocking in
         // EmailService)
         emailService.sendLoginAlert(user.getEmail(), user.getUsername());
 
-        return new AuthResponse(jwt);
+        return new AuthResponse(jwt, refreshToken);
     }
 }
