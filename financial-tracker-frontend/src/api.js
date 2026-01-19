@@ -42,6 +42,21 @@ const apiFetch = async (endpoint, options = {}) => {
   })
 
   if (!response.ok) {
+    // Helper function to handle retry response
+    const handleRetryResponse = async (res) => {
+      if (res.status === 204) return null
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) throw new AuthError()
+        const errorData = await res.json().catch(() => ({}))
+        const error = new Error(
+          errorData.message || `Request failed with status ${res.status}`
+        )
+        error.status = res.status
+        throw error
+      }
+      return res.json()
+    }
+
     // If unauthorized, attempt to refresh token
     if (response.status === 401 || response.status === 403) {
       const refreshToken = localStorage.getItem('refreshToken')
@@ -65,11 +80,7 @@ const apiFetch = async (endpoint, options = {}) => {
             return fetch(`${API_BASE_URL}${endpoint}`, {
               ...options,
               headers: newHeaders,
-            }).then((res) => {
-              if (!res.ok) throw new AuthError()
-              if (res.status === 204) return null
-              return res.json()
-            })
+            }).then(handleRetryResponse)
           })
           .catch(() => {
             throw new AuthError()
@@ -112,13 +123,7 @@ const apiFetch = async (endpoint, options = {}) => {
           ...options,
           headers: newHeaders,
         })
-
-        if (!retryResponse.ok) {
-          throw new AuthError()
-        }
-
-        if (retryResponse.status === 204) return null
-        return retryResponse.json()
+        return handleRetryResponse(retryResponse)
       } catch (error) {
         isRefreshing = false
         processQueue(error, null)

@@ -7,6 +7,7 @@ import com.example.financialtracker.model.User;
 import com.example.financialtracker.repository.TransactionRepository;
 import com.example.financialtracker.repository.MonthlySummaryRepository;
 import com.example.financialtracker.repository.FinalizationLogRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @CacheEvict(value = "reports", allEntries = true)
     public Transaction createTransaction(Transaction transaction, User user) {
         // Validate that at least one of credit or debit is non-zero
         BigDecimal credit = transaction.getCredit() != null ? transaction.getCredit() : BigDecimal.ZERO;
@@ -77,6 +79,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @CacheEvict(value = "reports", allEntries = true)
     public Transaction updateTransaction(Long id, Transaction transactionDetails, User user) {
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
@@ -115,6 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @CacheEvict(value = "reports", allEntries = true)
     public void deleteTransaction(Long id, User user) {
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
@@ -129,6 +133,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "reports", allEntries = true)
     public MonthlySummary finalizeMonth(User user) {
         List<Transaction> activeTransactions = transactionRepository.findAllByUserAndFinalizedOrderByDateAscIdAsc(user,
                 false);

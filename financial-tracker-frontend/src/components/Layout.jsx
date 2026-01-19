@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { FiSun, FiMoon } from 'react-icons/fi'
+import { FiSun, FiMoon, FiPieChart } from 'react-icons/fi'
 
-const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
+const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShowDashboard }) => {
   const [showOfferingNotification, setShowOfferingNotification] =
     useState(false)
 
@@ -55,6 +55,17 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings }) => {
                 />
               )}
             </button>
+
+            {onShowDashboard && (
+              <button
+                onClick={onShowDashboard}
+                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
+                title="Financial Dashboard"
+                aria-label="Financial Dashboard"
+              >
+                <FiPieChart size={20} />
+              </button>
+            )}
 
             {onShowSettings && (
               <button

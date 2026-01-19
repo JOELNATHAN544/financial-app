@@ -95,10 +95,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@RequestBody TokenRefreshRequest request) {
         String refreshToken = request.getRefreshToken();
-        // Extract username from token if possible, or just delete by token
-        refreshTokenService.findByToken(refreshToken).ifPresent(token -> {
-            refreshTokenService.deleteByUsername(token.getUser().getUsername());
-        });
+
+        // Validate refresh token
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Refresh token is required"));
+        }
+
+        // Delete only this specific token (per-device logout)
+        refreshTokenService.deleteByToken(refreshToken);
+
         return ResponseEntity.ok(Map.of("message", "Log out successful!"));
     }
 }
