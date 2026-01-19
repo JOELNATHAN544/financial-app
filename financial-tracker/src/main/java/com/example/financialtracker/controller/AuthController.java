@@ -3,7 +3,10 @@ package com.example.financialtracker.controller;
 import com.example.financialtracker.model.User;
 import com.example.financialtracker.payload.AuthRequest;
 import com.example.financialtracker.payload.AuthResponse;
+import com.example.financialtracker.payload.TokenRefreshRequest;
 import com.example.financialtracker.service.AuthService;
+import com.example.financialtracker.service.RefreshTokenService;
+import com.example.financialtracker.model.RefreshToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
@@ -39,8 +45,6 @@ public class AuthController {
 
             // Password complexity validation
             String password = authRequest.getPassword();
-            // Expanded special character set as per CodeRabbit suggestion:
-            // [!@#$%^&*(),.?":{}|<>\-_=+\\[\\]\\\\/~`|;:'\"]
             if (password.length() < 8 ||
                     !password.matches(".*[a-zA-Z].*") ||
                     !password.matches(".*\\d.*") ||
@@ -52,15 +56,9 @@ public class AuthController {
             }
 
             User user = new User(authRequest.getUsername(), authRequest.getEmail(), authRequest.getPassword());
-            User registeredUser = authService.registerUser(user);
+            AuthResponse authResponse = authService.registerUser(user);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", registeredUser.getId());
-            response.put("username", registeredUser.getUsername());
-            response.put("email", registeredUser.getEmail());
-            response.put("message", "User registered successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", e.getMessage());
@@ -78,5 +76,29 @@ public class AuthController {
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = authService.generateAccessToken(user.getUsername());
+                    return ResponseEntity.ok(new AuthResponse(token, requestRefreshToken));
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(@RequestBody TokenRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+        // Extract username from token if possible, or just delete by token
+        refreshTokenService.findByToken(refreshToken).ifPresent(token -> {
+            refreshTokenService.deleteByUsername(token.getUser().getUsername());
+        });
+        return ResponseEntity.ok(Map.of("message", "Log out successful!"));
     }
 }
