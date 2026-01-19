@@ -10,6 +10,13 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+
+    @org.springframework.data.jpa.repository.Query("SELECT t.usedFor, SUM(t.debit) FROM Transaction t WHERE t.user = :user AND t.debit > 0 AND t.date BETWEEN :startDate AND :endDate GROUP BY t.usedFor")
+    List<Object[]> findExpensesByCategory(User user, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    @org.springframework.data.jpa.repository.Query("SELECT t.date, SUM(t.debit) FROM Transaction t WHERE t.user = :user AND t.debit > 0 AND t.date BETWEEN :startDate AND :endDate GROUP BY t.date ORDER BY t.date ASC")
+    List<Object[]> findDailyExpenses(User user, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
     List<Transaction> findAllByUserOrderByDateAscIdAsc(User user);
 
     List<Transaction> findAllByUserAndFinalizedOrderByDateAscIdAsc(User user, boolean finalized);
