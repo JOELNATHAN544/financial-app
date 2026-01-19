@@ -28,7 +28,11 @@ function App() {
     // Handle OAuth2 callback
     const urlParams = new URLSearchParams(window.location.search)
     const token = urlParams.get('token')
+    const refreshToken = urlParams.get('refreshToken')
     if (token) {
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken)
+      }
       handleLogin(token)
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
