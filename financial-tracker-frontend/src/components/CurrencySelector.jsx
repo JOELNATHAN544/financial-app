@@ -16,7 +16,16 @@ const CurrencySelector = ({ value, onChange, className }) => {
                 }
             } catch (error) {
                 console.error("Failed to fetch currencies", error);
-                if (isMounted) setLoading(false);
+                if (isMounted) {
+                    // Fallback currencies
+                    setCurrencies({
+                        "USD": "United States Dollar",
+                        "EUR": "Euro",
+                        "GBP": "British Pound",
+                        "XAF": "Central African CFA Franc"
+                    });
+                    setLoading(false);
+                }
             }
         };
         fetchCurrencies();
@@ -28,8 +37,12 @@ const CurrencySelector = ({ value, onChange, className }) => {
     return (
         <select
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={`bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ${className}`}
+            onChange={(e) => {
+                console.log('Currency changed to:', e.target.value);
+                onChange(e.target.value);
+            }}
+            onClick={() => console.log('Currency selector clicked')}
+            className={`cursor-pointer bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ${className}`}
         >
             {Object.entries(currencies).map(([code, name]) => (
                 <option key={code} value={code}>
