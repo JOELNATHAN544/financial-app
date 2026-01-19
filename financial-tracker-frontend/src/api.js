@@ -8,6 +8,20 @@ export class AuthError extends Error {
   }
 }
 
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
+
 const apiFetch = async (endpoint, options = {}) => {
   const jwtToken = localStorage.getItem('jwtToken')
 
@@ -28,11 +42,90 @@ const apiFetch = async (endpoint, options = {}) => {
   })
 
   if (!response.ok) {
-    // If unauthorized, we might want to trigger a logout or refresh
+    // If unauthorized, attempt to refresh token
     if (response.status === 401 || response.status === 403) {
-      // Custom event or simple throw for handling in components
-      throw new AuthError()
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      if (!refreshToken) {
+        // No refresh token available, throw auth error
+        throw new AuthError()
+      }
+
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            // Retry original request with new token
+            const newHeaders = {
+              ...headers,
+              Authorization: `Bearer ${token}`,
+            }
+            return fetch(`${API_BASE_URL}${endpoint}`, {
+              ...options,
+              headers: newHeaders,
+            }).then((res) => {
+              if (!res.ok) throw new AuthError()
+              if (res.status === 204) return null
+              return res.json()
+            })
+          })
+          .catch((err) => {
+            throw new AuthError()
+          })
+      }
+
+      isRefreshing = true
+
+      try {
+        // Attempt to refresh the token
+        const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        })
+
+        if (!refreshResponse.ok) {
+          // Refresh failed, clear tokens and throw
+          localStorage.removeItem('jwtToken')
+          localStorage.removeItem('refreshToken')
+          processQueue(new AuthError(), null)
+          throw new AuthError()
+        }
+
+        const { jwt, refreshToken: newRefreshToken } = await refreshResponse.json()
+        localStorage.setItem('jwtToken', jwt)
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken)
+        }
+
+        processQueue(null, jwt)
+        isRefreshing = false
+
+        // Retry original request with new token
+        const newHeaders = {
+          ...headers,
+          Authorization: `Bearer ${jwt}`,
+        }
+        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+          ...options,
+          headers: newHeaders,
+        })
+
+        if (!retryResponse.ok) {
+          throw new AuthError()
+        }
+
+        if (retryResponse.status === 204) return null
+        return retryResponse.json()
+      } catch (error) {
+        isRefreshing = false
+        processQueue(error, null)
+        throw new AuthError()
+      }
     }
+
     const errorData = await response.json().catch(() => ({}))
     const error = new Error(
       errorData.message || `Request failed with status ${response.status}`
