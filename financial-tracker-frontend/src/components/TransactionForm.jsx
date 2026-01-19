@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import CurrencySelector from './CurrencySelector'
 
 const TransactionForm = ({
   onSubmit,
@@ -9,6 +10,7 @@ const TransactionForm = ({
     usedFor: '',
     credit: '',
     debit: '',
+    currency: 'XAF',
   })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,6 +24,7 @@ const TransactionForm = ({
           ? String(editingTransaction.credit)
           : '',
         debit: editingTransaction.debit ? String(editingTransaction.debit) : '',
+        currency: editingTransaction.currency || 'XAF',
       })
     } else {
       // Clear form if no transaction is being edited
@@ -29,6 +32,7 @@ const TransactionForm = ({
         usedFor: '',
         credit: '',
         debit: '',
+        currency: 'XAF',
       })
     }
     setErrors({}) // Clear errors when editing state changes
@@ -90,6 +94,7 @@ const TransactionForm = ({
         usedFor: '',
         credit: '',
         debit: '',
+        currency: 'XAF',
       })
       setErrors({})
       // Clear editing state if applicable
@@ -128,6 +133,20 @@ const TransactionForm = ({
         )}
       </div>
 
+      <div className="space-y-2">
+        <label
+          htmlFor="currency"
+          className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
+        >
+          Currency
+        </label>
+        <CurrencySelector
+          value={formData.currency}
+          onChange={(val) => handleChange({ target: { name: 'currency', value: val } })}
+          className="w-full"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
           <label
@@ -150,7 +169,7 @@ const TransactionForm = ({
               placeholder="0.00"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              FCFA
+              {formData.currency}
             </span>
           </div>
           {errors.credit && (
@@ -181,7 +200,7 @@ const TransactionForm = ({
               placeholder="0.00"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              FCFA
+              {formData.currency}
             </span>
           </div>
           {errors.debit && (
