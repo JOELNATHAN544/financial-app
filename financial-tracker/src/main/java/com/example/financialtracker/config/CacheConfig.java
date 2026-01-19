@@ -17,6 +17,11 @@ import java.time.Duration;
 public class CacheConfig {
 
     @Bean
+    public org.springframework.cache.CacheManager cacheManager() {
+        return new org.springframework.cache.concurrent.ConcurrentMapCacheManager("reports", "rates", "currencies");
+    }
+/*
+    @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10)) // Default TTL
@@ -31,4 +36,5 @@ public class CacheConfig {
                 .withCacheConfiguration("reports", config.entryTtl(Duration.ofMinutes(60))) // Longer TTL for reports
                 .build();
     }
+*/
 }
