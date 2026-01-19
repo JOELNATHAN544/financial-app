@@ -11,10 +11,10 @@ export default [
       ecmaVersion: 2020,
       globals: {
         ...Object.fromEntries(
-          Object.entries(globals.browser).map(([key, value]) => [
-            key.trim(),
-            value,
-          ])
+          Object.entries({
+            ...globals.browser,
+            ...globals.node,
+          }).map(([key, value]) => [key.trim(), value])
         ),
       },
       parserOptions: {
