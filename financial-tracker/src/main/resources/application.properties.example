@@ -24,3 +24,6 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}
 spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET:YOUR_GOOGLE_CLIENT_SECRET}
 spring.security.oauth2.client.registration.google.scope=profile,email
+
+# OAuth2 Redirect URI (Frontend callback)
+app.oauth2.redirectUri=${OAUTH2_REDIRECT_URI:http://localhost:5173/oauth2/callback}
