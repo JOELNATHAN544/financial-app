@@ -21,7 +21,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "reports", key = "#user.username + '-' + #startDate.toString() + '-category'")
+    @Cacheable(value = "reports", key = "#user.username + '-' + #startDate.toString() + '-' + #endDate.toString() + '-category'")
     public List<Map<String, Object>> getExpensesByCategory(User user, LocalDate startDate, LocalDate endDate) {
         List<Object[]> results = transactionRepository.findExpensesByCategory(user, startDate, endDate);
 
@@ -35,7 +35,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "reports", key = "#user.username + '-' + #startDate.toString() + '-monthly'")
+    @Cacheable(value = "reports", key = "#user.username + '-' + #startDate.toString() + '-' + #endDate.toString() + '-monthly'")
     public List<Map<String, Object>> getMonthlySummary(User user, LocalDate startDate, LocalDate endDate) {
         List<Object[]> results = transactionRepository.findDailyExpenses(user, startDate, endDate);
 
