@@ -33,6 +33,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private FinalizationLogRepository finalizationLogRepository;
 
+    @Autowired
+    private CurrencyService currencyService;
+
     @Override
     public List<Transaction> getAllTransactions(User user) {
         // Only return current (non-finalized) transactions for the main list
@@ -50,6 +53,26 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (credit.compareTo(BigDecimal.ZERO) == 0 && debit.compareTo(BigDecimal.ZERO) == 0) {
             throw new RuntimeException("Transaction must have either credit or debit amount");
+        }
+
+        // Multi-currency handling
+        String currency = transaction.getCurrency();
+        if (currency == null) {
+            currency = "XAF";
+            transaction.setCurrency("XAF");
+        }
+
+        BigDecimal originalAmount = credit.compareTo(BigDecimal.ZERO) > 0 ? credit : debit;
+        transaction.setOriginalAmount(originalAmount);
+
+        if (!"XAF".equalsIgnoreCase(currency)) {
+            // Convert to XAF for storage in credit/debit columns
+            if (credit.compareTo(BigDecimal.ZERO) > 0) {
+                transaction.setCredit(currencyService.convert(credit, currency, "XAF"));
+            }
+            if (debit.compareTo(BigDecimal.ZERO) > 0) {
+                transaction.setDebit(currencyService.convert(debit, currency, "XAF"));
+            }
         }
 
         if (transaction.getDate() == null) {
@@ -97,6 +120,28 @@ public class TransactionServiceImpl implements TransactionService {
         if ((creditToSet == null || creditToSet.compareTo(BigDecimal.ZERO) == 0) &&
                 (debitToSet == null || debitToSet.compareTo(BigDecimal.ZERO) == 0)) {
             throw new RuntimeException("Transaction must have either credit or debit amount");
+        }
+
+        // Handle Currency Update
+        if (transactionDetails.getCurrency() != null) {
+            transaction.setCurrency(transactionDetails.getCurrency());
+        }
+        String currency = transaction.getCurrency(); // New or existing
+
+        // Determine the "original amount" provided in the update, or fallback to
+        // existing original
+        // This logic is tricky on updates. If user updates amount, they are providing
+        // it in the transaction's currency.
+        BigDecimal originalAmount = creditToSet.compareTo(BigDecimal.ZERO) > 0 ? creditToSet : debitToSet;
+        transaction.setOriginalAmount(originalAmount);
+
+        if (!"XAF".equalsIgnoreCase(currency)) {
+            if (creditToSet != null && creditToSet.compareTo(BigDecimal.ZERO) > 0) {
+                creditToSet = currencyService.convert(creditToSet, currency, "XAF");
+            }
+            if (debitToSet != null && debitToSet.compareTo(BigDecimal.ZERO) > 0) {
+                debitToSet = currencyService.convert(debitToSet, currency, "XAF");
+            }
         }
 
         if (transactionDetails.getDate() != null) {
