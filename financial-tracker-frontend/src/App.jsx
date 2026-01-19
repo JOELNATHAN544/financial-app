@@ -4,6 +4,7 @@ import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
 import ProfileSettings from './components/ProfileSettings'
+import Dashboard from './components/Dashboard'
 import { api, AuthError } from './api'
 
 function App() {
@@ -13,10 +14,15 @@ function App() {
   const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken'))
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
   const [showSettings, setShowSettings] = useState(false)
+  const [showDashboard, setShowDashboard] = useState(false)
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
     localStorage.setItem('theme', theme)
   }, [theme])
 
@@ -68,6 +74,7 @@ function App() {
     setFinalizationHistory([])
     setUser(null)
     setShowSettings(false)
+    setShowDashboard(false)
   }
 
   const handleDeleteAccount = () => {
@@ -131,7 +138,8 @@ function App() {
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
-      onShowSettings={() => setShowSettings(true)}
+      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); }}
+      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); }}
     >
       <div className="mx-auto max-w-5xl space-y-10">
         {showSettings ? (
@@ -141,6 +149,8 @@ function App() {
             onDelete={handleDeleteAccount}
             onCancel={() => setShowSettings(false)}
           />
+        ) : showDashboard ? (
+          <Dashboard onBack={() => setShowDashboard(false)} />
         ) : (
           <div className="space-y-12">
             <section className="glass-card group relative overflow-hidden p-10">
