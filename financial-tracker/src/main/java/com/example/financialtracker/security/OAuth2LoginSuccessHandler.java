@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -26,6 +27,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${app.oauth2.redirectUri:http://localhost:5173/oauth2/callback}")
+    private String oauth2RedirectUri;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -58,7 +62,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
 
         // Redirect back to frontend with tokens
-        String targetUrl = "http://localhost:5173/oauth2/callback?token=" + token + "&refreshToken=" + refreshToken;
+        String targetUrl = oauth2RedirectUri + "?token=" + token + "&refreshToken=" + refreshToken;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
