@@ -101,11 +101,17 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
                     {transaction.credit ? (
                       <div className="flex flex-col items-end">
                         <span>{Number(transaction.credit).toLocaleString('en-CM')} FCFA</span>
-                        {transaction.currency && transaction.currency !== 'XAF' && (
-                          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
-                            ~ {Number(transaction.originalAmount).toLocaleString('en-US', { style: 'currency', currency: transaction.currency })}
-                          </span>
-                        )}
+                        {transaction.currency &&
+                          transaction.currency !== 'XAF' &&
+                          transaction.originalAmount != null && (
+                            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                              ~{' '}
+                              {Number(transaction.originalAmount).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: transaction.currency,
+                              })}
+                            </span>
+                          )}
                       </div>
                     ) : (
                       '—'
@@ -115,11 +121,17 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
                     {transaction.debit ? (
                       <div className="flex flex-col items-end">
                         <span>{Number(transaction.debit).toLocaleString('en-CM')} FCFA</span>
-                        {transaction.currency && transaction.currency !== 'XAF' && (
-                          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
-                            ~ {Number(transaction.originalAmount).toLocaleString('en-US', { style: 'currency', currency: transaction.currency })}
-                          </span>
-                        )}
+                        {transaction.currency &&
+                          transaction.currency !== 'XAF' &&
+                          transaction.originalAmount != null && (
+                            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                              ~{' '}
+                              {Number(transaction.originalAmount).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: transaction.currency,
+                              })}
+                            </span>
+                          )}
                       </div>
                     ) : (
                       '—'
