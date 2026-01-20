@@ -17,40 +17,61 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${app.mail.from}")
     private String fromEmail;
 
     @Async
-    public void sendSimpleMessage(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
+    public void sendEmail(String to, String subject, String body) {
         try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(
+                    message, true);
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(body, true); // true = html
+
             mailSender.send(message);
-        } catch (Exception e) {
-            log.warn("Error sending email to {}: {}", to, e.getMessage(), e);
-            // We don't want to block the main flow if email fails
+        } catch (jakarta.mail.MessagingException e) {
+            log.warn("Error sending email to {}: {}", to, e.getMessage());
         }
+    }
+
+    @Async
+    public void sendSimpleMessage(String to, String subject, String text) {
+        sendEmail(to, subject, text);
     }
 
     @Async
     public void sendWelcomeEmail(String to, String username) {
         String subject = "Welcome to FinanceFlow!";
-        String text = "Hello " + username + ",\n\n" +
-                "Thank you for joining FinanceFlow! We're excited to help you track your finances effectively.\n\n" +
-                "Best regards,\nThe FinanceFlow Team";
-        sendSimpleMessage(to, subject, text);
+        String body = "<h1>Welcome, " + username + "!</h1>" +
+                "<p>Thank you for registering with FinanceFlow. We are excited to help you manage your finances.</p>";
+        sendEmail(to, subject, body);
     }
 
     @Async
-    public void sendLoginAlert(String to, String username) {
-        String subject = "FinanceFlow: New Login Detected";
-        String text = "Hello " + username + ",\n\n" +
-                "This is a quick security alert to let you know that a new login was detected on your account.\n" +
-                "If this was you, you can safely ignore this email.\n\n" +
-                "Best regards,\nThe FinanceFlow Team";
-        sendSimpleMessage(to, subject, text);
+    public void sendNewDeviceLoginAlert(String to, String username, String deviceDetails, String time) {
+        String subject = "New Login Detected";
+        String body = "<h1>New Login Alert</h1>" +
+                "<p>Hi " + username + ",</p>" +
+                "<p>We detected a new login to your account.</p>" +
+                "<ul>" +
+                "<li>Device: " + deviceDetails + "</li>" +
+                "<li>Time: " + time + "</li>" +
+                "</ul>" +
+                "<p>If this wasn't you, please reset your password immediately.</p>";
+        sendEmail(to, subject, body);
+    }
+
+    @Async
+    public void sendDeletionCode(String to, String code) {
+        String subject = "Account Deletion Verification Code";
+        String body = "<h1>Account Deletion Request</h1>" +
+                "<p>You have requested to delete your account. This action cannot be undone.</p>" +
+                "<p>Your verification code is: <strong>" + code + "</strong></p>" +
+                "<p>If you did not request this, please ignore this email.</p>";
+        sendEmail(to, subject, body);
     }
 }

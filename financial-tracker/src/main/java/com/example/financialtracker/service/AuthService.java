@@ -69,8 +69,11 @@ public class AuthService {
         return jwtUtil.extractUsername(token);
     }
 
+    @Autowired
+    private com.example.financialtracker.repository.UserDeviceRepository userDeviceRepository;
+
     @Transactional
-    public AuthResponse authenticateUser(AuthRequest authRequest) {
+    public AuthResponse authenticateUser(AuthRequest authRequest, String deviceDetails, String ipAddress) {
         String loginIdentifier = authRequest.getUsername(); // This could be username or email
 
         // 1. User lookup outside the try-catch for authentication
@@ -124,13 +127,80 @@ public class AuthService {
         // 5. Create Refresh Token
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
 
-        // 6. Send login alert email - wrap in try-catch
+        // 6. Device Tracking & Alerting
         try {
-            emailService.sendLoginAlert(user.getEmail(), user.getUsername());
+            String deviceHash = Integer.toHexString((deviceDetails + ipAddress).hashCode()); // Simple hash
+            var existingDevice = userDeviceRepository.findByUserAndDeviceHash(user, deviceHash);
+
+            if (existingDevice.isPresent()) {
+                var device = existingDevice.get();
+                device.setLastLogin(java.time.LocalDateTime.now());
+                userDeviceRepository.save(device);
+            } else {
+                // New Device Detected
+                var newDevice = new com.example.financialtracker.model.UserDevice(
+                        user, deviceHash,
+                        deviceDetails.length() > 50 ? deviceDetails.substring(0, 50) + "..." : deviceDetails,
+                        java.time.LocalDateTime.now());
+                userDeviceRepository.save(newDevice);
+
+                emailService.sendNewDeviceLoginAlert(
+                        user.getEmail(),
+                        user.getUsername(),
+                        deviceDetails + " (IP: " + ipAddress + ")",
+                        java.time.LocalDateTime.now().toString());
+            }
         } catch (Exception e) {
-            log.error("Failed to send login alert email to {}: {}", user.getEmail(), e.getMessage());
+            log.error("Failed to process device tracking for {}: {}", user.getUsername(), e.getMessage());
         }
 
         return new AuthResponse(jwt, refreshToken);
+    }
+
+    @Autowired
+    private UserService userService;
+
+    public void requestAccountDeletion(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        user.setDeletionCode(code);
+        user.setDeletionCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        try {
+            emailService.sendDeletionCode(user.getEmail(), code);
+        } catch (Exception e) {
+            log.error("Failed to send deletion code: {}", e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void deleteAccount(String username, String code, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify password first (Critical Security)
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        // Verify MFA code
+        if (user.getDeletionCode() == null ||
+                !user.getDeletionCode().equals(code) ||
+                user.getDeletionCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Invalid or expired deletion verification code");
+        }
+
+        // Execute deletion
+        userService.deleteUser(user);
+
+        try {
+            emailService.sendEmail(user.getEmail(), "Account Deleted",
+                    "<h1>Goodbye</h1><p>Your account has been successfully deleted.</p>");
+        } catch (Exception e) {
+            // Ignore
+        }
     }
 }
