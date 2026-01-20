@@ -1,7 +1,7 @@
 package com.example.financialtracker.controller;
 
 import com.example.financialtracker.model.User;
-import com.example.financialtracker.payload.AdvisorInsightsResponse;
+
 import com.example.financialtracker.service.AdvisorService;
 import com.example.financialtracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
