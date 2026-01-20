@@ -59,7 +59,7 @@ public class AdvisorServiceImpl implements AdvisorService {
         LocalDate sixtyDaysAgo = today.minusDays(60);
 
         for (Transaction t : transactions) {
-            if (t.getDate().isAfter(sixtyDaysAgo)) {
+            if (t.getDate().isAfter(sixtyDaysAgo) && t.getBalance() != null) {
                 regression.addData(ChronoUnit.DAYS.between(sixtyDaysAgo, t.getDate()), t.getBalance().doubleValue());
             }
         }
@@ -172,10 +172,5 @@ public class AdvisorServiceImpl implements AdvisorService {
                 .reduce((first, second) -> second) // Get last transaction on or before date
                 .map(Transaction::getBalance)
                 .orElse(BigDecimal.ZERO);
-    }
-
-    private boolean isRecurringDueOn(RecurringTransaction rt, LocalDate date) {
-        // Very simplified check
-        return rt.getNextRunDate().isEqual(date);
     }
 }
