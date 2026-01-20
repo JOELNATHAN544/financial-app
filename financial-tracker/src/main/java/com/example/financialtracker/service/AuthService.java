@@ -10,9 +10,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -47,7 +52,7 @@ public class AuthService {
         try {
             emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
         } catch (Exception e) {
-            // Log error but don't fail registration
+            log.error("Failed to send welcome email to {}: {}", savedUser.getEmail(), e.getMessage());
         }
 
         String jwt = jwtUtil.generateToken(savedUser.getUsername());
@@ -64,6 +69,7 @@ public class AuthService {
         return jwtUtil.extractUsername(token);
     }
 
+    @Transactional
     public AuthResponse authenticateUser(AuthRequest authRequest) {
         String loginIdentifier = authRequest.getUsername(); // This could be username or email
 
@@ -102,7 +108,7 @@ public class AuthService {
                             "Account Locked",
                             "Your account has been locked for 30 minutes due to 5 consecutive failed login attempts.");
                 } catch (Exception ex) {
-                    // Log but don't block
+                    log.error("Failed to send lockout email to {}: {}", user.getEmail(), ex.getMessage());
                 }
                 throw new RuntimeException(
                         "Account is locked due to multiple failed login attempts. Please try again later.");
@@ -122,7 +128,7 @@ public class AuthService {
         try {
             emailService.sendLoginAlert(user.getEmail(), user.getUsername());
         } catch (Exception e) {
-            // Log but don't block
+            log.error("Failed to send login alert email to {}: {}", user.getEmail(), e.getMessage());
         }
 
         return new AuthResponse(jwt, refreshToken);

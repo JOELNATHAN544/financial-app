@@ -32,6 +32,9 @@ public class User implements UserDetails {
     @Column(name = "lockout_expiry")
     private java.time.LocalDateTime lockoutExpiry;
 
+    @Version
+    private Long version;
+
     // Default constructor
     public User() {
     }
