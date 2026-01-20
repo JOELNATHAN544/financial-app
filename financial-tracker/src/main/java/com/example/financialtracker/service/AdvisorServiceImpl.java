@@ -85,16 +85,8 @@ public class AdvisorServiceImpl implements AdvisorService {
             if (Double.isNaN(predictedValue))
                 predictedValue = lastBalance.doubleValue();
 
-            // Adjust prediction with recurring items due on this specific date
+            // Recurring transaction logic removed as per PR feedback (dead code)
             BigDecimal adjustedValue = new BigDecimal(predictedValue);
-            for (RecurringTransaction rt : recurring) {
-                if (isRecurringDueOn(rt, futureDate)) {
-                    // This is a crude adjustment since the regression might already "see" the trend
-                    // of recurring items,
-                    // but it helps for one-off spiky months.
-                    // For now, let's keep it simple and just rely on the regression trend.
-                }
-            }
 
             result.add(new AdvisorInsightsResponse.ForecastDataPoint(
                     futureDate.toString(),

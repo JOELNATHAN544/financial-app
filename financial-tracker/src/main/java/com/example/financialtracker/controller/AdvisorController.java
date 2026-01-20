@@ -23,8 +23,14 @@ public class AdvisorController {
     private UserService userService;
 
     @GetMapping("/insights")
-    public ResponseEntity<AdvisorInsightsResponse> getInsights(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getInsights(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
         User user = userService.findByUsername(userDetails.getUsername());
+        if (user == null) {
+            return ResponseEntity.status(404).build();
+        }
         return ResponseEntity.ok(advisorService.getInsights(user));
     }
 }

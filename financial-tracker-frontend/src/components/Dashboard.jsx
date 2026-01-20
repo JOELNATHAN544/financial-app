@@ -90,7 +90,7 @@ const Dashboard = ({ onBack }) => {
                         <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200">Balance Forecast</h3>
                         <div className="flex gap-4">
                             <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-indigo-500"></span><span className="text-[10px] font-bold uppercase tracking-tighter text-slate-500">History</span></div>
-                            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-indigo-500" style={{ opacity: 0.3 }}></span><span className="text-[10px] font-bold uppercase tracking-tighter text-slate-500">30-Day Projecton</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-indigo-500" style={{ opacity: 0.3 }}></span><span className="text-[10px] font-bold uppercase tracking-tighter text-slate-500">30-Day Projection</span></div>
                         </div>
                     </div>
                     <div className="h-80 w-full">
