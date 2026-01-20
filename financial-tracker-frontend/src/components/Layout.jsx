@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiSun, FiMoon, FiPieChart, FiTarget, FiRepeat } from 'react-icons/fi'
+import { FiPieChart, FiTarget, FiRepeat, FiSettings, FiActivity } from 'react-icons/fi'
 
 const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
   const [showOfferingNotification, setShowOfferingNotification] =
@@ -17,107 +17,65 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShow
     setShowOfferingNotification(false)
   }
 
+  const NavButton = ({ onClick, icon: Icon, label, active }) => (
+    <button
+      onClick={onClick}
+      className={`group flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 font-bold ${active
+          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+          : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+        }`}
+    >
+      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${active ? 'text-white' : 'text-slate-400 group-hover:text-indigo-500 dark:text-slate-500 dark:group-hover:text-indigo-400'}`} />
+      <span>{label}</span>
+    </button>
+  )
+
   return (
     <div className="min-h-screen transition-colors duration-500">
-      <header className="dark:bg-slate-950/60 dark:border-slate-800/50 sticky top-0 z-40 w-full border-b border-slate-200/50 bg-white/60 backdrop-blur-xl transition-all duration-300">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="dark:bg-slate-950/80 dark:border-slate-800/50 sticky top-0 z-40 w-full border-b border-slate-200/50 bg-white/80 backdrop-blur-xl transition-all duration-300">
+        <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div
-            className="group flex cursor-pointer items-center space-x-3"
+            className="group flex cursor-pointer items-center space-x-4"
             onClick={() => (window.location.href = '/')}
           >
-            <div className="premium-gradient flex h-12 w-12 transform items-center justify-center rounded-2xl shadow-xl shadow-indigo-500/20 transition-all duration-500 group-hover:rotate-12">
-              <span className="text-2xl font-bold text-white">$</span>
+            <div className="premium-gradient flex h-14 w-14 transform items-center justify-center rounded-2xl shadow-xl shadow-indigo-500/20 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+              <span className="text-3xl font-black text-white">$</span>
             </div>
-            <h1 className="dark:from-white dark:to-slate-400 bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-2xl font-black tracking-tight text-transparent">
-              FinanceFlow
-            </h1>
+            <div>
+              <h1 className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-2xl font-black tracking-tighter text-transparent dark:from-indigo-400 dark:to-violet-400">
+                FinanceFlow
+              </h1>
+              <p className="hidden text-xs font-bold uppercase tracking-widest text-slate-400 sm:block dark:text-slate-600">
+                Premium Tracker
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className="glass-card hover:premium-gradient group rounded-2xl border-none p-3 transition-all duration-500"
-              title={
-                theme === 'dark'
-                  ? 'Switch to Light Mode'
-                  : 'Switch to Dark Mode'
-              }
-            >
-              {theme === 'dark' ? (
-                <FiSun
-                  size={20}
-                  className="transition-transform duration-500 group-hover:rotate-90"
-                />
-              ) : (
-                <FiMoon
-                  size={20}
-                  className="transition-transform duration-500 group-hover:-rotate-12"
-                />
-              )}
-            </button>
-
+          <nav className="flex items-center space-x-2">
             {onShowDashboard && (
-              <button
-                onClick={onShowDashboard}
-                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
-                title="Financial Dashboard"
-                aria-label="Financial Dashboard"
-              >
-                <FiPieChart size={20} />
-              </button>
+              <NavButton onClick={onShowDashboard} icon={FiPieChart} label="Dashboard" />
             )}
 
             {onShowBudgets && (
-              <button
-                onClick={onShowBudgets}
-                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
-                title="Budgeting"
-                aria-label="Budgeting"
-              >
-                <FiTarget size={20} />
-              </button>
+              <NavButton onClick={onShowBudgets} icon={FiTarget} label="Budgets" />
             )}
 
             {onShowRecurring && (
-              <button
-                onClick={onShowRecurring}
-                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
-                title="Recurring Transactions"
-                aria-label="Recurring Transactions"
-              >
-                <FiRepeat size={20} />
-              </button>
+              <NavButton onClick={onShowRecurring} icon={FiRepeat} label="Recurring" />
             )}
 
+            {/* Advisor Link - if we implement strict route later, for now sticking to core */}
+            {/* <NavButton onClick={onShowAdvisor} icon={FiActivity} label="Advisor" /> */}
+          </nav>
+
+          <div className="flex items-center pl-6 border-l border-slate-200 dark:border-slate-800 ml-6">
             {onShowSettings && (
               <button
                 onClick={onShowSettings}
-                className="glass-card hover:premium-gradient rounded-2xl border-none p-3 transition-all duration-500"
-                title="Account Settings"
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-all group"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </button>
-            )}
-
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                className="interactive-button bg-rose-500/90 text-white shadow-xl shadow-rose-500/30 hover:bg-rose-600"
-              >
-                Logout
+                <FiSettings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+                <span>Settings</span>
               </button>
             )}
           </div>

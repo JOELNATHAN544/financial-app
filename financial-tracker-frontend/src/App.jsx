@@ -3,7 +3,7 @@ import Layout from './components/Layout'
 import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
 import Auth from './components/Auth'
-import ProfileSettings from './components/ProfileSettings'
+import Settings from './components/Settings'
 import Dashboard from './components/Dashboard'
 import BudgetManager from './components/BudgetManager'
 import RecurringManager from './components/RecurringManager'
@@ -154,11 +154,14 @@ function App() {
     >
       <div className="mx-auto max-w-5xl space-y-10">
         {showSettings ? (
-          <ProfileSettings
+          <Settings
             user={user}
             onUpdate={fetchUserProfile}
             onDelete={handleDeleteAccount}
             onCancel={() => setShowSettings(false)}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            onLogout={handleLogout}
           />
         ) : showDashboard ? (
           <Dashboard onBack={() => setShowDashboard(false)} />
