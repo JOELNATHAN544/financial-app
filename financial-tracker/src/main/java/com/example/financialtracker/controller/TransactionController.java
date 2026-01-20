@@ -92,7 +92,7 @@ public class TransactionController {
         return new ResponseEntity<>(summary, HttpStatus.OK);
     }
 
-    @GetMapping("/finalization-history")
+    @GetMapping("/history")
     public ResponseEntity<List<FinalizationLog>> getFinalizationHistory(
             @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         User user = getAuthenticatedUser(userDetails);
