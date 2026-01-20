@@ -50,13 +50,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     @CacheEvict(value = "reports", allEntries = true)
     public Transaction createTransaction(Transaction transaction, User user) {
+        if (transaction == null) {
+            throw new IllegalArgumentException("Transaction cannot be null");
+        }
         transaction.setUser(user);
         if (transaction.getDate() == null) {
             transaction.setDate(LocalDate.now());
         }
-        if (transaction != null) {
-            transaction.setFinalized(false);
-        }
+        transaction.setFinalized(false);
         transaction.setBalance(java.math.BigDecimal.ZERO);
 
         // Validate that at least one of credit or debit is non-zero
@@ -145,6 +146,7 @@ public class TransactionServiceImpl implements TransactionService {
         String currency = transaction.getCurrency();
         if (currency == null) {
             currency = "XAF";
+            transaction.setCurrency("XAF");
         }
         final String currentCurrency = currency;
 

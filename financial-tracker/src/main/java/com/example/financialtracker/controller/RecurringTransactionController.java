@@ -37,12 +37,6 @@ public class RecurringTransactionController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/process")
-    public ResponseEntity<Void> forceProcess() {
-        recurringService.processRecurringTransactions();
-        return ResponseEntity.ok().build();
-    }
-
     private User getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username)

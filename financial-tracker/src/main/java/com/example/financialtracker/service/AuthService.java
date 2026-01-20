@@ -42,8 +42,13 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
 
-        // Send welcome email
-        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
+        // Send welcome email - wrap in try-catch to avoid blocking registration on
+        // email failure
+        try {
+            emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
+        } catch (Exception e) {
+            // Log error but don't fail registration
+        }
 
         String jwt = jwtUtil.generateToken(savedUser.getUsername());
         String refreshToken = refreshTokenService.createRefreshToken(savedUser.getUsername()).getToken();
@@ -91,10 +96,14 @@ public class AuthService {
             if (attempts >= 5) {
                 user.setLockoutExpiry(java.time.LocalDateTime.now().plusMinutes(30));
                 userRepository.save(user);
-                emailService.sendSimpleMessage(
-                        user.getEmail(),
-                        "Account Locked",
-                        "Your account has been locked for 30 minutes due to 5 consecutive failed login attempts.");
+                try {
+                    emailService.sendSimpleMessage(
+                            user.getEmail(),
+                            "Account Locked",
+                            "Your account has been locked for 30 minutes due to 5 consecutive failed login attempts.");
+                } catch (Exception ex) {
+                    // Log but don't block
+                }
                 throw new RuntimeException(
                         "Account is locked due to multiple failed login attempts. Please try again later.");
             }
@@ -109,8 +118,12 @@ public class AuthService {
         // 5. Create Refresh Token
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getToken();
 
-        // 6. Send login alert email
-        emailService.sendLoginAlert(user.getEmail(), user.getUsername());
+        // 6. Send login alert email - wrap in try-catch
+        try {
+            emailService.sendLoginAlert(user.getEmail(), user.getUsername());
+        } catch (Exception e) {
+            // Log but don't block
+        }
 
         return new AuthResponse(jwt, refreshToken);
     }
