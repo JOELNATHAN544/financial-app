@@ -220,7 +220,7 @@ const TransactionForm = ({
               // First, normalize text: remove commas in numbers, convert words to numbers
               let normalizedTranscript = transcript.replace(/,/g, '') // "200,000" -> "200000"
 
-              // Word multipliers
+              // Word multipliers - IMPORTANT: Apply these BEFORE extracting the amount
               normalizedTranscript = normalizedTranscript
                 .replace(/(\d+)\s*k\b/g, (match, p1) => parseInt(p1) * 1000)
                 .replace(/(\d+)\s*thousand\b/g, (match, p1) => parseInt(p1) * 1000)
@@ -230,6 +230,7 @@ const TransactionForm = ({
               // If API sends "one million", we might need a library, but let's handle "a million" or "one million" simply if common.
               // For now assuming digits.
 
+              // NOW extract the amount AFTER multipliers have been applied
               const amountMatch = normalizedTranscript.match(/(\d+(?:\.\d{1,2})?)/)
               const amount = amountMatch ? amountMatch[0] : ''
 
