@@ -26,6 +26,15 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "lockout_expiry")
+    private java.time.LocalDateTime lockoutExpiry;
+
+    @Version
+    private Long version;
+
     // Default constructor
     public User() {
     }
@@ -71,6 +80,22 @@ public class User implements UserDetails {
         this.email = email;
     }
 
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public java.time.LocalDateTime getLockoutExpiry() {
+        return lockoutExpiry;
+    }
+
+    public void setLockoutExpiry(java.time.LocalDateTime lockoutExpiry) {
+        this.lockoutExpiry = lockoutExpiry;
+    }
+
     // UserDetails interface methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -86,7 +111,10 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        if (lockoutExpiry == null) {
+            return true;
+        }
+        return java.time.LocalDateTime.now().isAfter(lockoutExpiry);
     }
 
     @Override

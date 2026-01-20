@@ -6,6 +6,7 @@ import Auth from './components/Auth'
 import ProfileSettings from './components/ProfileSettings'
 import Dashboard from './components/Dashboard'
 import BudgetManager from './components/BudgetManager'
+import RecurringManager from './components/RecurringManager'
 import { api, AuthError } from './api'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
   const [showBudgets, setShowBudgets] = useState(false)
+  const [showRecurring, setShowRecurring] = useState(false)
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -81,6 +83,7 @@ function App() {
     setShowSettings(false)
     setShowDashboard(false)
     setShowBudgets(false)
+    setShowRecurring(false)
   }
 
   const handleDeleteAccount = () => {
@@ -144,9 +147,10 @@ function App() {
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
-      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); }}
-      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); }}
-      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); }}
+      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); setShowRecurring(false); }}
+      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); setShowRecurring(false); }}
+      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); setShowRecurring(false); }}
+      onShowRecurring={() => { setShowRecurring(true); setShowSettings(false); setShowDashboard(false); setShowBudgets(false); }}
     >
       <div className="mx-auto max-w-5xl space-y-10">
         {showSettings ? (
@@ -160,6 +164,8 @@ function App() {
           <Dashboard onBack={() => setShowDashboard(false)} />
         ) : showBudgets ? (
           <BudgetManager />
+        ) : showRecurring ? (
+          <RecurringManager />
         ) : (
           <div className="space-y-12">
             <section className="glass-card group relative overflow-hidden p-10">
