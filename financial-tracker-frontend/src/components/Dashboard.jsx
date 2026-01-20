@@ -6,7 +6,7 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#3b82f6'
 
 const Dashboard = ({ onBack }) => {
     const [categoryData, setCategoryData] = useState([]);
-    const [trendData, setTrendData] = useState([]);
+    // trendData removed as it was unused
     const [budgets, setBudgets] = useState([]);
     const [advisorData, setAdvisorData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,15 +15,13 @@ const Dashboard = ({ onBack }) => {
         let isMounted = true;
         const fetchData = async () => {
             try {
-                const [categories, trends, budgetData, advisor] = await Promise.all([
+                const [categories, budgetData, advisor] = await Promise.all([
                     api.get('/api/reports/expense-by-category'),
-                    api.get('/api/reports/monthly-summary'),
                     api.get('/api/budgets/current'),
                     api.get('/api/advisor/insights')
                 ]);
                 if (isMounted) {
                     setCategoryData(categories);
-                    setTrendData(trends);
                     setBudgets(budgetData);
                     setAdvisorData(advisor);
                 }
