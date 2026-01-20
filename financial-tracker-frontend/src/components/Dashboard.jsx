@@ -62,14 +62,14 @@ const Dashboard = ({ onBack }) => {
                     <div className="glass-card p-6 border-l-4 border-indigo-500">
                         <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Projected End Balance</p>
                         <h4 className="text-2xl font-black dark:text-white">
-                            {advisorData.stats.projectedEndOfMonthBalance.toLocaleString()} <span className="text-sm font-normal text-slate-400">FCFA</span>
+                            {advisorData.stats.projectedEndOfMonthBalance?.toLocaleString() ?? '0'} <span className="text-sm font-normal text-slate-400">FCFA</span>
                         </h4>
                         <div className="mt-2 text-[10px] font-bold text-indigo-400">Based on 60-day historical trend</div>
                     </div>
                     <div className="glass-card p-6 border-l-4 border-purple-500">
                         <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Daily Burn Rate</p>
                         <h4 className="text-2xl font-black dark:text-white">
-                            {advisorData.stats.averageDailySpending.toLocaleString()} <span className="text-sm font-normal text-slate-400">FCFA/day</span>
+                            {advisorData.stats.averageDailySpending?.toLocaleString() ?? '0'} <span className="text-sm font-normal text-slate-400">FCFA/day</span>
                         </h4>
                         <div className="mt-2 text-[10px] font-bold text-purple-400">Average over the last 30 days</div>
                     </div>
@@ -119,7 +119,7 @@ const Dashboard = ({ onBack }) => {
                                                 <div className="glass-card p-3 border-none shadow-2xl">
                                                     <p className="text-[10px] uppercase font-black text-slate-500 mb-1">{new Date(data.date).toLocaleDateString()}</p>
                                                     <p className="text-sm font-black text-indigo-500">
-                                                        {data.balance.toLocaleString()} FCFA
+                                                        {data.balance?.toLocaleString() ?? '0'} FCFA
                                                         {data.projected && <span className="ml-2 py-0.5 px-1.5 bg-indigo-500/10 rounded text-[8px]">PROJECTED</span>}
                                                     </p>
                                                 </div>
@@ -191,7 +191,7 @@ const Dashboard = ({ onBack }) => {
                                                 <div className="glass-card p-3 border-none shadow-2xl">
                                                     <p className="text-[10px] uppercase font-black text-slate-500 mb-1">{data.name}</p>
                                                     <p className="text-sm font-black text-indigo-500">
-                                                        {data.value.toLocaleString()} FCFA
+                                                        {data.value?.toLocaleString() ?? '0'} FCFA
                                                     </p>
                                                 </div>
                                             );
