@@ -11,7 +11,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.financialtracker.service.CurrencyService;
 
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
@@ -55,8 +54,10 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction.getDate() == null) {
             transaction.setDate(LocalDate.now());
         }
-        transaction.setFinalized(false);
-        transaction.setBalance(java.math.BigDecimal.ZERO); // Temporary balance to satisfy NOT NULL constraint
+        if (transaction != null) {
+            transaction.setFinalized(false);
+        }
+        transaction.setBalance(java.math.BigDecimal.ZERO);
 
         // Validate that at least one of credit or debit is non-zero
         BigDecimal credit = transaction.getCredit() != null ? transaction.getCredit() : BigDecimal.ZERO;
@@ -72,17 +73,18 @@ public class TransactionServiceImpl implements TransactionService {
             currency = "XAF";
             transaction.setCurrency("XAF");
         }
+        final String currentCurrency = currency;
 
         BigDecimal originalAmount = credit.compareTo(BigDecimal.ZERO) > 0 ? credit : debit;
         transaction.setOriginalAmount(originalAmount);
 
-        if (!"XAF".equalsIgnoreCase(currency)) {
+        if (!"XAF".equalsIgnoreCase(currentCurrency)) {
             // Convert to XAF for storage in credit/debit columns
             if (credit.compareTo(BigDecimal.ZERO) > 0) {
-                transaction.setCredit(currencyService.convert(credit, currency, "XAF"));
+                transaction.setCredit(currencyService.convert(credit, currentCurrency, "XAF"));
             }
             if (debit.compareTo(BigDecimal.ZERO) > 0) {
-                transaction.setDebit(currencyService.convert(debit, currency, "XAF"));
+                transaction.setDebit(currencyService.convert(debit, currentCurrency, "XAF"));
             }
         }
 
@@ -100,6 +102,9 @@ public class TransactionServiceImpl implements TransactionService {
             budgetService.checkBudgetAlert(user, category, transaction.getDebit());
         }
 
+        if (saved == null || saved.getId() == null) {
+            throw new RuntimeException("Failed to save transaction: ID is null");
+        }
         // Return the updated transaction from DB
         return transactionRepository.findById(saved.getId())
                 .orElseThrow(() -> new RuntimeException("Transaction not found after save"));
@@ -137,7 +142,11 @@ public class TransactionServiceImpl implements TransactionService {
         if (transactionDetails.getCurrency() != null) {
             transaction.setCurrency(transactionDetails.getCurrency());
         }
-        String currency = transaction.getCurrency(); // New or existing
+        String currency = transaction.getCurrency();
+        if (currency == null) {
+            currency = "XAF";
+        }
+        final String currentCurrency = currency;
 
         // Determine the "original amount" provided in the update, or fallback to
         // existing original
@@ -148,12 +157,12 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal originalAmount = safeCredit.compareTo(BigDecimal.ZERO) > 0 ? safeCredit : safeDebit;
         transaction.setOriginalAmount(originalAmount);
 
-        if (!"XAF".equalsIgnoreCase(currency)) {
+        if (!"XAF".equalsIgnoreCase(currentCurrency)) {
             if (creditToSet != null && creditToSet.compareTo(BigDecimal.ZERO) > 0) {
-                creditToSet = currencyService.convert(creditToSet, currency, "XAF");
+                creditToSet = currencyService.convert(creditToSet, currentCurrency, "XAF");
             }
             if (debitToSet != null && debitToSet.compareTo(BigDecimal.ZERO) > 0) {
-                debitToSet = currencyService.convert(debitToSet, currency, "XAF");
+                debitToSet = currencyService.convert(debitToSet, currentCurrency, "XAF");
             }
         }
 
@@ -197,7 +206,7 @@ public class TransactionServiceImpl implements TransactionService {
         List<Transaction> activeTransactions = transactionRepository.findAllByUserAndFinalizedOrderByDateAscIdAsc(user,
                 false);
 
-        if (activeTransactions.isEmpty()) {
+        if (activeTransactions == null || activeTransactions.isEmpty()) {
             throw new RuntimeException("No active transactions found to finalize for this month");
         }
 
