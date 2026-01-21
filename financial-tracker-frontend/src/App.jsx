@@ -129,18 +129,47 @@ function App() {
     }
   }
 
-  const handleSubmitTransaction = async (transaction) => {
-    try {
+  const handleSubmitTransaction = (transaction) => {
+    // Strip frontend-only 'type' field to avoid backend rejection (Jackson unknown property)
+    const { type: _unusedType, ...cleanTransaction } = transaction;
+
+    return new Promise((resolve, reject) => {
       if (editingTransaction) {
-        await api.put(`/api/transactions/${editingTransaction.id}`, transaction)
-        setEditingTransaction(null)
+        setConfirmModal({
+          isOpen: true,
+          title: 'Update Transaction',
+          message: 'Are you sure you want to save the changes to this transaction?',
+          isDangerous: false,
+          onConfirm: async () => {
+            try {
+              const updated = await api.put(`/api/transactions/${editingTransaction.id}`, cleanTransaction)
+              setEditingTransaction(null)
+              fetchTransactions()
+              setConfirmModal(prev => ({ ...prev, isOpen: false }))
+              resolve(updated)
+            } catch (error) {
+              console.error('Error updating transaction:', error)
+              setConfirmModal(prev => ({ ...prev, isOpen: false }))
+              reject(error)
+            }
+          },
+          onCancel: () => {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            reject(new Error('Update cancelled'))
+          }
+        })
       } else {
-        await api.post('/api/transactions', transaction)
+        api.post('/api/transactions', cleanTransaction)
+          .then(res => {
+            fetchTransactions()
+            resolve(res)
+          })
+          .catch(error => {
+            console.error('Error saving transaction:', error)
+            reject(error)
+          })
       }
-      fetchTransactions()
-    } catch (error) {
-      console.error('Error saving transaction:', error)
-    }
+    })
   }
 
   const handleEdit = (transaction) => {
@@ -228,6 +257,12 @@ function App() {
             onLogout={handleLogout}
             onUpdate={fetchUserProfile}
           />
+        ) : showDashboard ? (
+          <Dashboard
+            onBack={() => {
+              setShowDashboard(false)
+            }}
+          />
         ) : showBudgets ? (
           <BudgetManager jwtToken={jwtToken} />
         ) : showRecurring ? (
@@ -292,7 +327,10 @@ function App() {
         confirmText={confirmModal.isDangerous ? 'Delete' : 'Confirm'}
         isDangerous={confirmModal.isDangerous}
         onConfirm={confirmModal.onConfirm}
-        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onCancel={() => {
+          if (confirmModal.onCancel) confirmModal.onCancel();
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        }}
       />
     </Layout >
   )

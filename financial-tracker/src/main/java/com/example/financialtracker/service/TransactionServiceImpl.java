@@ -139,10 +139,8 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         // Validate that at least one of credit or debit is non-zero
-        BigDecimal creditToSet = transactionDetails.getCredit() != null ? transactionDetails.getCredit()
-                : transaction.getCredit();
-        BigDecimal debitToSet = transactionDetails.getDebit() != null ? transactionDetails.getDebit()
-                : transaction.getDebit();
+        BigDecimal creditToSet = transactionDetails.getCredit();
+        BigDecimal debitToSet = transactionDetails.getDebit();
 
         if ((creditToSet == null || creditToSet.compareTo(BigDecimal.ZERO) == 0) &&
                 (debitToSet == null || debitToSet.compareTo(BigDecimal.ZERO) == 0)) {
