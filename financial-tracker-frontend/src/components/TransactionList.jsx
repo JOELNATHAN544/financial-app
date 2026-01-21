@@ -1,8 +1,6 @@
 import React from 'react'
 
 const TransactionList = ({ transactions, onEdit, onDelete }) => {
-  console.log('Transactions received in TransactionList.jsx:', transactions)
-
   // Get current month and year
   const currentDate = new Date()
   const monthYear = currentDate.toLocaleString('default', {
