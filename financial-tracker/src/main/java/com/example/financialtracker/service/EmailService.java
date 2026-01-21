@@ -34,7 +34,7 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (jakarta.mail.MessagingException | org.springframework.mail.MailAuthenticationException e) {
-            log.warn("Error sending email to {}: {}", to, e.getMessage());
+            log.warn("Error sending email to {}", to, e);
         }
     }
 
