@@ -68,6 +68,9 @@ public class User implements UserDetails {
     @Column(name = "last_reset_password_resend_at")
     private java.time.LocalDateTime lastResetPasswordResendAt;
 
+    @Column(name = "reset_password_code_attempts", nullable = false)
+    private int resetPasswordCodeAttempts = 0;
+
     // Default constructor
     public User() {
     }
@@ -212,6 +215,14 @@ public class User implements UserDetails {
 
     public void setLastResetPasswordResendAt(java.time.LocalDateTime lastResetPasswordResendAt) {
         this.lastResetPasswordResendAt = lastResetPasswordResendAt;
+    }
+
+    public int getResetPasswordCodeAttempts() {
+        return resetPasswordCodeAttempts;
+    }
+
+    public void setResetPasswordCodeAttempts(int resetPasswordCodeAttempts) {
+        this.resetPasswordCodeAttempts = resetPasswordCodeAttempts;
     }
 
     // UserDetails interface methods
