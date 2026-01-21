@@ -26,7 +26,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Transient
+    @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
 
     @Transient
