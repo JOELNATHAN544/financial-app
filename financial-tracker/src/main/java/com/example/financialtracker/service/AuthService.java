@@ -328,13 +328,14 @@ public class AuthService {
         user.setResetPasswordCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         user.setResetPasswordResendCount(user.getResetPasswordResendCount() + 1);
         user.setLastResetPasswordResendAt(java.time.LocalDateTime.now());
+        user.setResetPasswordCodeAttempts(0);
         userRepository.save(user);
 
         // Send email
         try {
             emailService.sendResetPasswordEmail(user.getEmail(), code);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to user {}: {}", user.getUsername(), e.getMessage());
+            log.error("Failed to send password reset email: {}", e.getMessage());
             throw new RuntimeException("Failed to send reset email. Please try again later.");
         }
     }
