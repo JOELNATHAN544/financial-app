@@ -95,6 +95,43 @@ public class AuthService {
         }
     }
 
+    @Transactional
+    public void resendVerificationCode(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isEnabled()) {
+            throw new RuntimeException("Account is already verified. Please sign in.");
+        }
+
+        // Limit to 3 resends total
+        if (user.getVerificationResendCount() >= 3) {
+            throw new RuntimeException("Maximum resend attempts reached. Please register again if your code expired.");
+        }
+
+        // Rate limit: 60 seconds cooldown
+        if (user.getLastVerificationResendAt() != null &&
+                user.getLastVerificationResendAt().isAfter(java.time.LocalDateTime.now().minusSeconds(60))) {
+            throw new RuntimeException("Please wait at least 60 seconds before requesting a new code.");
+        }
+
+        // Generate new code
+        String newCode = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        user.setVerificationCode(newCode);
+        user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        user.setVerificationResendCount(user.getVerificationResendCount() + 1);
+        user.setLastVerificationResendAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+
+        // Send email
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), newCode);
+        } catch (Exception e) {
+            log.error("Failed to resend verification email to {}: {}", user.getEmail(), e.getMessage());
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
+        }
+    }
+
     public String generateAccessToken(String username) {
         return jwtUtil.generateToken(username);
     }
