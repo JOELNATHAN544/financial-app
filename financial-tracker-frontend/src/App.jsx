@@ -102,6 +102,9 @@ function App() {
     setShowDashboard(false)
     setShowBudgets(false)
     setShowRecurring(false)
+    setShowHistory(false)
+    setShowAuth(false)
+    setAuthInitialMode('login')
   }
 
   const handleDeleteAccount = () => {
@@ -187,7 +190,7 @@ function App() {
     )
   }
 
-  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : ''
+  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : 'dashboard'
 
   return (
     <Layout
