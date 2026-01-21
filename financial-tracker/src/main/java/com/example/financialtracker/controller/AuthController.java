@@ -7,6 +7,8 @@ import com.example.financialtracker.payload.TokenRefreshRequest;
 import com.example.financialtracker.service.AuthService;
 import com.example.financialtracker.service.RefreshTokenService;
 import com.example.financialtracker.model.RefreshToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthService authService;
@@ -72,10 +76,15 @@ public class AuthController {
         String username = request.get("username");
         String code = request.get("code");
 
+        if (username == null || username.isBlank() || code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username and verification code are required"));
+        }
+
         try {
             authService.verifyEmail(username, code);
             return ResponseEntity.ok(Map.of("message", "Email verified successfully. You can now login."));
         } catch (RuntimeException e) {
+            log.warn("Email verification failed for user {}: {}", username, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
@@ -144,13 +153,19 @@ public class AuthController {
         String password = request.get("password");
         String code = request.get("code");
 
+        if (username == null || username.isBlank() || code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid request parameters"));
+        }
+
         try {
             authService.deleteAccount(username, code, password);
             return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            System.err.println("DELETE ACCOUNT ERROR: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            log.error("Failed to delete account for user {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An internal error occurred while processing your request"));
         }
     }
 }
