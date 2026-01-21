@@ -58,7 +58,7 @@ const LandingPage = ({ onLoginClick, onRegisterClick }) => {
                             onClick={onLoginClick}
                             className="text-sm font-semibold leading-6 text-white hover:text-indigo-300 transition-colors flex items-center gap-2"
                         >
-                            Live demo <span aria-hidden="true">→</span>
+                            Sign in <span aria-hidden="true">→</span>
                         </button>
                     </div>
                 </div>
