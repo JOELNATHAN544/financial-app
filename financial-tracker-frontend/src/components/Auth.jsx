@@ -18,6 +18,10 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
   const [verificationCode, setVerificationCode] = useState('')
   const [resendCountdown, setResendCountdown] = useState(0)
 
+  // Forgot Password State
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [isResetPassword, setIsResetPassword] = useState(false)
+
   // Resend Code Logic
   const handleResendCode = async () => {
     if (resendCountdown > 0) return
@@ -70,6 +74,29 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
     }
 
     try {
+      if (isForgotPassword) {
+        await api.post('/api/auth/forgot-password', { identifier: username })
+        setIsForgotPassword(false)
+        setIsResetPassword(true)
+        setSuccessMessage('Reset code sent to your email!')
+        return
+      }
+
+      if (isResetPassword) {
+        await api.post('/api/auth/reset-password', {
+          identifier: username,
+          code: verificationCode,
+          newPassword: password,
+        })
+        setIsResetPassword(false)
+        setIsLogin(true)
+        setVerificationCode('')
+        setPassword('')
+        setError('')
+        setSuccessMessage('Password reset successful! Please sign in.')
+        return
+      }
+
       if (isVerifying) {
         // Verify Email Flow
         await api.post('/api/auth/verify-email', { username, code: verificationCode })
@@ -130,37 +157,49 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
               <span className="text-3xl font-black text-white">$</span>
             </div>
             <h2 className="dark:text-white text-4xl font-black tracking-tight text-slate-900">
-              {isVerifying ? 'Verify Email' : isLogin ? 'Welcome Back' : 'Create Account'}
+              {isForgotPassword
+                ? 'Forgot Password'
+                : isResetPassword
+                  ? 'Reset Password'
+                  : isVerifying
+                    ? 'Verify Email'
+                    : isLogin
+                      ? 'Welcome Back'
+                      : 'Create Account'}
             </h2>
             <p className="dark:text-slate-400 mt-2 font-medium text-slate-500">
-              {isVerifying
-                ? 'Enter the code sent to your email'
-                : isLogin
-                  ? 'Manage your finances with elegance'
-                  : 'Start your journey to financial freedom'}
+              {isForgotPassword
+                ? 'Enter your username or email'
+                : isResetPassword
+                  ? 'Enter the code and new password'
+                  : isVerifying
+                    ? 'Enter the code sent to your email'
+                    : isLogin
+                      ? 'Manage your finances with elegance'
+                      : 'Start your journey to financial freedom'}
             </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleAuth}>
-            {!isVerifying ? (
+            {!isVerifying && !isResetPassword ? (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
-                    {isLogin ? 'Username or Email' : 'Username'}
+                    {isLogin || isForgotPassword ? 'Username or Email' : 'Username'}
                   </label>
                   <input
                     type="text"
                     required
                     className="input-field"
                     placeholder={
-                      isLogin ? 'Enter username or email' : 'Choose a username'
+                      isLogin || isForgotPassword ? 'Enter username or email' : 'Choose a username'
                     }
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
 
-                {!isLogin && (
+                {!isLogin && !isForgotPassword && (
                   <div className="space-y-2">
                     <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
                       Email Address
@@ -176,34 +215,53 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      className="input-field pr-12"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-indigo-500"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <HiEyeOff size={20} />
-                      ) : (
-                        <HiEye size={20} />
-                      )}
-                    </button>
+                {!isForgotPassword && (
+                  <div className="space-y-1.5">
+                    <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        className="input-field pr-12"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-indigo-500"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <HiEyeOff size={20} />
+                        ) : (
+                          <HiEye size={20} />
+                        )}
+                      </button>
+                    </div>
+                    {isLogin && (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setIsForgotPassword(true)
+                            setIsLogin(false)
+                            setError('')
+                            setSuccessMessage('')
+                          }}
+                          className="mt-1 text-xs font-bold text-indigo-500 transition-colors hover:text-indigo-400"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
-                {!isLogin && (
+                {!isLogin && !isForgotPassword && (
                   <div className="space-y-2">
                     <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
                       Confirm Password
@@ -234,6 +292,49 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                   </div>
                 )}
               </div>
+            ) : isResetPassword ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                    Reset Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    className="input-field text-center text-2xl tracking-widest"
+                    placeholder="000000"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      className="input-field pr-12"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-indigo-500"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <HiEyeOff size={20} />
+                      ) : (
+                        <HiEye size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="space-y-2">
                 <label className="dark:text-slate-300 ml-1 block text-sm font-bold text-slate-700">
@@ -254,8 +355,8 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                     disabled={resendCountdown > 0}
                     onClick={handleResendCode}
                     className={`text-sm font-bold transition-all ${resendCountdown > 0
-                        ? 'cursor-not-allowed text-slate-500'
-                        : 'text-indigo-500 hover:text-indigo-600'
+                      ? 'cursor-not-allowed text-slate-500'
+                      : 'text-indigo-500 hover:text-indigo-600'
                       }`}
                   >
                     {resendCountdown > 0
@@ -282,11 +383,19 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
               type="submit"
               className="interactive-button premium-gradient w-full py-3.5 text-lg shadow-xl shadow-indigo-500/20"
             >
-              {isVerifying ? 'Verify Account' : isLogin ? 'Sign In' : 'Get Started'}
+              {isForgotPassword
+                ? 'Send Reset Code'
+                : isResetPassword
+                  ? 'Update Password'
+                  : isVerifying
+                    ? 'Verify Account'
+                    : isLogin
+                      ? 'Sign In'
+                      : 'Get Started'}
             </button>
           </form>
 
-          {!isVerifying && (
+          {!isVerifying && !isResetPassword && !isForgotPassword && (
             <>
               <div className="mt-8">
                 <div className="relative py-4">
@@ -334,6 +443,8 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                 <button
                   onClick={() => {
                     setIsLogin(!isLogin)
+                    setIsForgotPassword(false)
+                    setIsResetPassword(false)
                     setError('')
                     setUsername('')
                     setEmail('')
@@ -350,6 +461,23 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                 </button>
               </div>
             </>
+          )}
+
+          {(isForgotPassword || isResetPassword) && (
+            <div className="mt-8 pt-2 text-center">
+              <button
+                onClick={() => {
+                  setIsLogin(true)
+                  setIsForgotPassword(false)
+                  setIsResetPassword(false)
+                  setError('')
+                  setSuccessMessage('')
+                }}
+                className="text-sm font-bold tracking-tight text-indigo-500 transition-colors hover:text-indigo-600"
+              >
+                Return to sign in
+              </button>
+            </div>
           )}
         </div>
       </div>
