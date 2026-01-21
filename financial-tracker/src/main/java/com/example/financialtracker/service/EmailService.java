@@ -86,6 +86,17 @@ public class EmailService {
     }
 
     @Async
+    public void sendResetPasswordEmail(String to, String code) {
+        String subject = "Reset your FinanceFlow Password";
+        String body = "<h1>Password Reset Request</h1>" +
+                "<p>We received a request to reset your password.</p>" +
+                "<p>Your reset code is: <strong>" + code + "</strong></p>" +
+                "<p>Enter this code in the app to set a new password. This code will expire in 15 minutes.</p>" +
+                "<p>If you did not request this, please secure your account immediately or ignore this email.</p>";
+        sendEmail(to, subject, body);
+    }
+
+    @Async
     public void sendLowBalanceAlert(String to, java.math.BigDecimal balance) {
         String subject = "Low Balance Warning";
         String body = "<h1>Low Balance Alert</h1>" +
