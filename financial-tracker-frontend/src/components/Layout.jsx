@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { FiPieChart, FiTarget, FiRepeat, FiSettings, FiActivity } from 'react-icons/fi'
 
-const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
-  const [showOfferingNotification, setShowOfferingNotification] =
-    useState(false)
+const NavButton = ({ onClick, icon, label, active }) => {
+  const Icon = icon
+  return (
+    <button
+      onClick={onClick}
+      className={`group flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 font-bold ${active
+        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+        : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+        }`}
+    >
+      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${active ? 'text-white' : 'text-slate-400 group-hover:text-indigo-500 dark:text-slate-500 dark:group-hover:text-indigo-400'}`} />
+      <span>{label}</span>
+    </button>
+  )
+}
+
+const Layout = ({ children, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
+  const [showOfferingNotification, setShowOfferingNotification] = useState(false)
 
   useEffect(() => {
     const today = new Date()
@@ -16,19 +31,6 @@ const Layout = ({ children, onLogout, theme, toggleTheme, onShowSettings, onShow
   const handleCloseNotification = () => {
     setShowOfferingNotification(false)
   }
-
-  const NavButton = ({ onClick, icon: Icon, label, active }) => (
-    <button
-      onClick={onClick}
-      className={`group flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 font-bold ${active
-          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-          : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
-        }`}
-    >
-      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${active ? 'text-white' : 'text-slate-400 group-hover:text-indigo-500 dark:text-slate-500 dark:group-hover:text-indigo-400'}`} />
-      <span>{label}</span>
-    </button>
-  )
 
   return (
     <div className="min-h-screen transition-colors duration-500">
