@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface FinalizationLogRepository extends JpaRepository<FinalizationLog, Long> {
     List<FinalizationLog> findAllByOrderByFinalizationDateDesc();
+
     List<FinalizationLog> findAllByUserOrderByFinalizationDateDesc(User user);
-} 
+
+    List<FinalizationLog> findAllByUser(User user);
+}
