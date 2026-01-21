@@ -52,7 +52,7 @@ const Dashboard = ({ onBack }) => {
                     <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time insights and AI forecasting</p>
                 </div>
                 <button onClick={onBack} className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all duration-300 transform hover:scale-105 active:scale-95">
-                    Back to Transactions
+                    Return to Transactions
                 </button>
             </div>
 
