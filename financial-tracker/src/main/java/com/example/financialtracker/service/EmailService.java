@@ -74,4 +74,37 @@ public class EmailService {
                 "<p>If you did not request this, please ignore this email.</p>";
         sendEmail(to, subject, body);
     }
+
+    @Async
+    public void sendVerificationEmail(String to, String code) {
+        String subject = "Verify your FinanceFlow Account";
+        String body = "<h1>Welcome to FinanceFlow!</h1>" +
+                "<p>Please verify your email address to activate your account.</p>" +
+                "<p>Your verification code is: <strong>" + code + "</strong></p>" +
+                "<p>Enter this code in the app to proceed.</p>";
+        sendEmail(to, subject, body);
+    }
+
+    @Async
+    public void sendLowBalanceAlert(String to, java.math.BigDecimal balance) {
+        String subject = "Low Balance Warning";
+        String body = "<h1>Low Balance Alert</h1>" +
+                "<p>Your account balance has dropped to <strong>" + balance + " XAF</strong>.</p>" +
+                "<p>Please review your expenses and top up if necessary.</p>";
+        sendEmail(to, subject, body);
+    }
+
+    @Async
+    public void sendBudgetExceededAlert(String to, String category, java.math.BigDecimal spent,
+            java.math.BigDecimal limit) {
+        String subject = "Budget Exceeded Alert: " + category;
+        String body = "<h1>Budget Exceeded</h1>" +
+                "<p>You have exceeded your budget for <strong>" + category + "</strong>.</p>" +
+                "<ul>" +
+                "<li><strong>Budget Limit:</strong> " + limit + " XAF</li>" +
+                "<li><strong>Current Spending:</strong> " + spent + " XAF</li>" +
+                "</ul>" +
+                "<p>Please adjust your spending habits to stay on track.</p>";
+        sendEmail(to, subject, body);
+    }
 }

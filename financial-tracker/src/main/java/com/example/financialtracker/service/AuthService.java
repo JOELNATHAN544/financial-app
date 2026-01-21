@@ -37,7 +37,7 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
-    public AuthResponse registerUser(User user) {
+    public void registerUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
@@ -45,20 +45,45 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Generate Verification Code
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        user.setVerificationCode(code);
+        user.setEnabled(false); // Disable until verified
+
         User savedUser = userRepository.save(user);
 
-        // Send welcome email - wrap in try-catch to avoid blocking registration on
-        // email failure
+        // Send Verification Email
         try {
-            emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
+            emailService.sendVerificationEmail(savedUser.getEmail(), code);
         } catch (Exception e) {
-            log.error("Failed to send welcome email to {}: {}", savedUser.getEmail(), e.getMessage());
+            log.error("Failed to send verification email to {}: {}", savedUser.getEmail(), e.getMessage());
+        }
+        // Function now returns void as we don't issue tokens on registration anymore
+    }
+
+    public void verifyEmail(String username, String code) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isEnabled()) {
+            return; // Already verified
         }
 
-        String jwt = jwtUtil.generateToken(savedUser.getUsername());
-        String refreshToken = refreshTokenService.createRefreshToken(savedUser.getUsername()).getToken();
+        if (code == null || !code.equals(user.getVerificationCode())) {
+            throw new RuntimeException("Invalid verification code");
+        }
 
-        return new AuthResponse(jwt, refreshToken);
+        user.setEnabled(true);
+        user.setVerificationCode(null);
+        userRepository.save(user);
+
+        // Send welcome email AFTER verification
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public String generateAccessToken(String username) {
@@ -80,6 +105,11 @@ public class AuthService {
         User user = userRepository.findByUsername(loginIdentifier)
                 .or(() -> userRepository.findByEmail(loginIdentifier))
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        // 1.1 Check Enabled Status
+        if (!user.isEnabled()) {
+            throw new RuntimeException("Account not verified. Please check your email for the verification code.");
+        }
 
         // 2. Check for lockout
         if (!user.isAccountNonLocked()) {

@@ -55,6 +55,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             newUser.setUsername(finalUsername);
             newUser.setPassword("OAUTH2_USER_" + java.util.UUID.randomUUID()); // Random password for security
+            newUser.setEnabled(true); // Enable automatically as Google implies email verification
             return userRepository.save(newUser);
         });
 

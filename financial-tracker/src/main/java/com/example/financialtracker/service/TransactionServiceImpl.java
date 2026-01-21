@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
+import com.example.financialtracker.service.EmailService;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -38,6 +39,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Autowired
     private BudgetService budgetService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<Transaction> getAllTransactions(User user) {
@@ -269,6 +273,16 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         transactionRepository.saveAll(transactions);
+
+        // Low Balance Check (<= 0)
+        if (currentBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            try {
+                emailService.sendLowBalanceAlert(user.getEmail(), currentBalance);
+            } catch (Exception e) {
+                // Log error but don't fail transaction
+                System.err.println("Failed to send low balance alert: " + e.getMessage());
+            }
+        }
     }
 
     @Override

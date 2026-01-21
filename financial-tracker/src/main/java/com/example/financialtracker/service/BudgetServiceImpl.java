@@ -95,12 +95,13 @@ public class BudgetServiceImpl implements BudgetService {
                             .orElse(BigDecimal.ZERO);
 
                     if (currentSpent.compareTo(budget.getAmount()) > 0) {
-                        emailService.sendSimpleMessage(
-                                user.getEmail(),
-                                "Budget Alert: " + category,
-                                "You have exceeded your budget for " + category + ".\n" +
-                                        "Budget: " + budget.getAmount() + " XAF\n" +
-                                        "Current Spending: " + currentSpent + " XAF");
+                        if (currentSpent.compareTo(budget.getAmount()) > 0) {
+                            emailService.sendBudgetExceededAlert(
+                                    user.getEmail(),
+                                    category,
+                                    currentSpent,
+                                    budget.getAmount());
+                        }
                     }
                 });
     }

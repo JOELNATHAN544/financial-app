@@ -56,13 +56,27 @@ public class AuthController {
             }
 
             User user = new User(authRequest.getUsername(), authRequest.getEmail(), authRequest.getPassword());
-            AuthResponse authResponse = authService.registerUser(user);
+            authService.registerUser(user);
 
-            return ResponseEntity.ok(authResponse);
+            return ResponseEntity
+                    .ok(Map.of("message", "Registration successful. Please check your email for verification code."));
         } catch (RuntimeException e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String code = request.get("code");
+
+        try {
+            authService.verifyEmail(username, code);
+            return ResponseEntity.ok(Map.of("message", "Email verified successfully. You can now login."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

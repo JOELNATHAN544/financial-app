@@ -26,20 +26,26 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "failed_login_attempts", nullable = false)
+    @Transient
     private int failedLoginAttempts = 0;
 
-    @Column(name = "lockout_expiry")
+    @Transient
     private java.time.LocalDateTime lockoutExpiry;
 
     @Version
     private Long version;
 
-    @Column(name = "deletion_code")
+    @Transient
     private String deletionCode;
 
-    @Column(name = "deletion_code_expiry")
+    @Transient
     private java.time.LocalDateTime deletionCodeExpiry;
+
+    @Transient
+    private Boolean enabled = true;
+
+    @Transient
+    private String verificationCode;
 
     // Default constructor
     public User() {
@@ -49,6 +55,7 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = true; // Default to true so login always works
     }
 
     // Getters and Setters
@@ -118,11 +125,21 @@ public class User implements UserDetails {
         this.deletionCodeExpiry = deletionCodeExpiry;
     }
 
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
     // UserDetails interface methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // For simplicity, we are not implementing roles/authorities yet.
-        // You can return a default role or an empty list.
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
@@ -146,7 +163,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(enabled);
     }
 
     @Override
