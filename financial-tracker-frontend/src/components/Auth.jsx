@@ -16,6 +16,31 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
   // Verification State
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationCode, setVerificationCode] = useState('')
+  const [resendCountdown, setResendCountdown] = useState(0)
+
+  // Resend Code Logic
+  const handleResendCode = async () => {
+    if (resendCountdown > 0) return
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      await api.post('/api/auth/resend-verification', { username })
+      setSuccessMessage('Verification code resent! Please check your email.')
+      setResendCountdown(60)
+      const timer = setInterval(() => {
+        setResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   const handleAuth = async (e) => {
     e.preventDefault()
@@ -223,6 +248,21 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                 />
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    disabled={resendCountdown > 0}
+                    onClick={handleResendCode}
+                    className={`text-sm font-bold transition-all ${resendCountdown > 0
+                        ? 'cursor-not-allowed text-slate-500'
+                        : 'text-indigo-500 hover:text-indigo-600'
+                      }`}
+                  >
+                    {resendCountdown > 0
+                      ? `Resend code in ${resendCountdown}s`
+                      : "Didn't receive a code? Resend"}
+                  </button>
+                </div>
               </div>
             )}
 
