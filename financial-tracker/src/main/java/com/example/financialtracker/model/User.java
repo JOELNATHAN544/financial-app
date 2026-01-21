@@ -56,6 +56,18 @@ public class User implements UserDetails {
     @Column(name = "last_verification_resend_at")
     private java.time.LocalDateTime lastVerificationResendAt;
 
+    @Column(name = "reset_password_code")
+    private String resetPasswordCode;
+
+    @Column(name = "reset_password_code_expiry")
+    private java.time.LocalDateTime resetPasswordCodeExpiry;
+
+    @Column(name = "reset_password_resend_count", nullable = false)
+    private int resetPasswordResendCount = 0;
+
+    @Column(name = "last_reset_password_resend_at")
+    private java.time.LocalDateTime lastResetPasswordResendAt;
+
     // Default constructor
     public User() {
     }
@@ -168,6 +180,38 @@ public class User implements UserDetails {
 
     public void setLastVerificationResendAt(java.time.LocalDateTime lastVerificationResendAt) {
         this.lastVerificationResendAt = lastVerificationResendAt;
+    }
+
+    public String getResetPasswordCode() {
+        return resetPasswordCode;
+    }
+
+    public void setResetPasswordCode(String resetPasswordCode) {
+        this.resetPasswordCode = resetPasswordCode;
+    }
+
+    public java.time.LocalDateTime getResetPasswordCodeExpiry() {
+        return resetPasswordCodeExpiry;
+    }
+
+    public void setResetPasswordCodeExpiry(java.time.LocalDateTime resetPasswordCodeExpiry) {
+        this.resetPasswordCodeExpiry = resetPasswordCodeExpiry;
+    }
+
+    public int getResetPasswordResendCount() {
+        return resetPasswordResendCount;
+    }
+
+    public void setResetPasswordResendCount(int resetPasswordResendCount) {
+        this.resetPasswordResendCount = resetPasswordResendCount;
+    }
+
+    public java.time.LocalDateTime getLastResetPasswordResendAt() {
+        return lastResetPasswordResendAt;
+    }
+
+    public void setLastResetPasswordResendAt(java.time.LocalDateTime lastResetPasswordResendAt) {
+        this.lastResetPasswordResendAt = lastResetPasswordResendAt;
     }
 
     // UserDetails interface methods
