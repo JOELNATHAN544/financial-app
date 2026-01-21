@@ -292,7 +292,8 @@ public class TransactionServiceImpl implements TransactionService {
                     try {
                         emailService.sendLowBalanceAlert(user.getEmail(), finalBalance);
                     } catch (Exception e) {
-                        log.error("Failed to send low balance alert for user {}: {}", user.getEmail(), e.getMessage(),
+                        log.error("Failed to send low balance alert for user {}: {}", user.getUsername(),
+                                e.getMessage(),
                                 e);
                     }
                 }
