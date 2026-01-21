@@ -44,8 +44,11 @@ public class User implements UserDetails {
     @Column(name = "enabled")
     private Boolean enabled = false;
 
-    @Column(name = "verification_code")
+    @Column(name = "verification_code", length = 6)
     private String verificationCode;
+
+    @Column(name = "verification_code_expiry")
+    private java.time.LocalDateTime verificationCodeExpiry;
 
     // Default constructor
     public User() {
@@ -135,6 +138,14 @@ public class User implements UserDetails {
 
     public void setVerificationCode(String verificationCode) {
         this.verificationCode = verificationCode;
+    }
+
+    public java.time.LocalDateTime getVerificationCodeExpiry() {
+        return verificationCodeExpiry;
+    }
+
+    public void setVerificationCodeExpiry(java.time.LocalDateTime verificationCodeExpiry) {
+        this.verificationCodeExpiry = verificationCodeExpiry;
     }
 
     // UserDetails interface methods
