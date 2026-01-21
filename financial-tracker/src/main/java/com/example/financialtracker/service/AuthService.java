@@ -127,7 +127,7 @@ public class AuthService {
         try {
             emailService.sendVerificationEmail(user.getEmail(), newCode);
         } catch (Exception e) {
-            log.error("Failed to resend verification email to {}: {}", user.getEmail(), e.getMessage());
+            log.error("Failed to resend verification email to user {}: {}", user.getUsername(), e.getMessage());
             throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
     }
@@ -163,9 +163,11 @@ public class AuthService {
                     "Account is locked due to multiple failed login attempts. Please try again later.");
         }
 
-        // 2.1 Detect OAuth2 users attempting manual login
+        // 2.1 Detect OAuth2 users attempting manual login (Regex detects BCrypt $2a$,
+        // $2b$, or $2y$ prefixes)
         if (user.getPassword() != null
-                && (user.getPassword().startsWith("OAUTH2_USER_") || !user.getPassword().startsWith("$2"))) {
+                && (user.getPassword().startsWith("OAUTH2_USER_")
+                        || !user.getPassword().matches("^\\$2[aby]\\$\\d+\\$.+"))) {
             throw new RuntimeException("This account is linked to Google. Please use 'Log in with Google'.");
         }
 
@@ -193,7 +195,7 @@ public class AuthService {
                             "Account Locked",
                             "Your account has been locked for 30 minutes due to 5 consecutive failed login attempts.");
                 } catch (Exception ex) {
-                    log.error("Failed to send lockout email to {}: {}", user.getEmail(), ex.getMessage());
+                    log.error("Failed to send lockout email to user {}: {}", user.getUsername(), ex.getMessage());
                 }
                 throw new RuntimeException(
                         "Account is locked due to multiple failed login attempts. Please try again later.");
@@ -266,7 +268,7 @@ public class AuthService {
         // Verify password (skip for OAuth users who don't have BCrypt passwords)
         String storedPassword = user.getPassword();
         // Regex detects BCrypt $2a$, $2b$, or $2y$ prefixes
-        boolean isOAuthUser = storedPassword == null || !storedPassword.matches("^\\$2[aby]\\$.*");
+        boolean isOAuthUser = storedPassword == null || !storedPassword.matches("^\\$2[aby]\\$\\d+\\$.+");
 
         if (!isOAuthUser && !passwordEncoder.matches(password, storedPassword)) {
             throw new RuntimeException("Invalid password");
