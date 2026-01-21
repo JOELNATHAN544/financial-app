@@ -144,7 +144,13 @@ public class AuthController {
         String password = request.get("password");
         String code = request.get("code");
 
-        authService.deleteAccount(username, code, password);
-        return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
+        try {
+            authService.deleteAccount(username, code, password);
+            return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
+        } catch (Exception e) {
+            System.err.println("DELETE ACCOUNT ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 }
