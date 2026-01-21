@@ -150,7 +150,8 @@ public class AuthService {
         // 1. User lookup outside the try-catch for authentication
         User user = userRepository.findByUsername(loginIdentifier)
                 .or(() -> userRepository.findByEmail(loginIdentifier))
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new RuntimeException(
+                        "Account not found. Please check your username/email or create a new account."));
 
         // 1.1 Check Enabled Status
         if (!user.isEnabled()) {
@@ -202,7 +203,7 @@ public class AuthService {
             }
 
             userRepository.save(user);
-            throw new RuntimeException("Invalid credentials");
+            throw new RuntimeException("Incorrect password. Please try again or use 'Forgot Password'.");
         }
 
         // 4. Generate JWT after successful authentication
@@ -294,6 +295,74 @@ public class AuthService {
                     "<h1>Goodbye</h1><p>Your account has been successfully deleted.</p>");
         } catch (Exception e) {
             // Ignore email errors
+        }
+    }
+
+    @Transactional
+    public void requestPasswordReset(String identifier) {
+        User user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .orElseThrow(() -> new RuntimeException("No account found with that username or email address."));
+
+        // Rate limit: 60 seconds cooldown
+        if (user.getLastResetPasswordResendAt() != null &&
+                user.getLastResetPasswordResendAt().isAfter(java.time.LocalDateTime.now().minusSeconds(60))) {
+            throw new RuntimeException("Please wait at least 60 seconds before requesting a new reset code.");
+        }
+
+        // Generate new code
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+        user.setResetPasswordCode(code);
+        user.setResetPasswordCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        user.setResetPasswordResendCount(user.getResetPasswordResendCount() + 1);
+        user.setLastResetPasswordResendAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+
+        // Send email
+        try {
+            emailService.sendResetPasswordEmail(user.getEmail(), code);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to user {}: {}", user.getUsername(), e.getMessage());
+            throw new RuntimeException("Failed to send reset email. Please try again later.");
+        }
+    }
+
+    @Transactional
+    public void resetPassword(String identifier, String code, String newPassword) {
+        User user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getResetPasswordCode() == null || !user.getResetPasswordCode().equals(code)) {
+            throw new RuntimeException("Invalid reset code");
+        }
+
+        if (user.getResetPasswordCodeExpiry() == null ||
+                user.getResetPasswordCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Reset code has expired. Please request a new one.");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        // Clear reset fields
+        user.setResetPasswordCode(null);
+        user.setResetPasswordCodeExpiry(null);
+        user.setResetPasswordResendCount(0);
+        user.setLastResetPasswordResendAt(null);
+
+        // Also reset lockout just in case
+        user.setFailedLoginAttempts(0);
+        user.setLockoutExpiry(null);
+
+        userRepository.save(user);
+
+        // Log security event or send confirmation email
+        try {
+            emailService.sendSimpleMessage(user.getEmail(), "Password Changed Successfully",
+                    "Your FinanceFlow password has been successfully reset. If you did not perform this action, please contact support immediately.");
+        } catch (Exception e) {
+            // ignore
         }
     }
 }
