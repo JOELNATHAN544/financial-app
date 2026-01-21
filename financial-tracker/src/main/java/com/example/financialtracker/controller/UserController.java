@@ -64,7 +64,9 @@ public class UserController {
             user.setPassword(passwordEncoder.encode(updates.get("password")));
         }
 
-        userRepository.save(user);
+        if (user != null) {
+            userRepository.save(user);
+        }
 
         // Notify user about account update
         emailService.sendSimpleMessage(user.getEmail(), "FinanceFlow: Account Updated",
@@ -78,7 +80,9 @@ public class UserController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        userRepository.delete(user);
+        if (user != null) {
+            userRepository.delete(user);
+        }
 
         // Send a final farewell email
         emailService.sendSimpleMessage(user.getEmail(), "FinanceFlow: Account Deleted",
