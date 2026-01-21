@@ -20,10 +20,16 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
-import com.example.financialtracker.service.EmailService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionServiceImpl.class);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -260,9 +266,11 @@ public class TransactionServiceImpl implements TransactionService {
                 false);
 
         // Get starting balance from the last finalized summary
-        BigDecimal currentBalance = monthlySummaryRepository.findTopByUserOrderByMonthYearDesc(user)
+        BigDecimal startingBalance = monthlySummaryRepository.findTopByUserOrderByMonthYearDesc(user)
                 .map(MonthlySummary::getClosingBalance)
                 .orElse(BigDecimal.ZERO);
+
+        BigDecimal currentBalance = startingBalance;
 
         for (Transaction t : transactions) {
             BigDecimal credit = t.getCredit() != null ? t.getCredit() : BigDecimal.ZERO;
@@ -274,14 +282,21 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.saveAll(transactions);
 
-        // Low Balance Check (<= 0)
-        if (currentBalance.compareTo(BigDecimal.ZERO) <= 0) {
-            try {
-                emailService.sendLowBalanceAlert(user.getEmail(), currentBalance);
-            } catch (Exception e) {
-                // Log error but don't fail transaction
-                System.err.println("Failed to send low balance alert: " + e.getMessage());
-            }
+        // Low Balance Check: send only on threshold crossing (positive -> <= 0), after
+        // commit
+        if (startingBalance.compareTo(BigDecimal.ZERO) > 0 && currentBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            final BigDecimal finalBalance = currentBalance;
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        emailService.sendLowBalanceAlert(user.getEmail(), finalBalance);
+                    } catch (Exception e) {
+                        log.error("Failed to send low balance alert for user {}: {}", user.getEmail(), e.getMessage(),
+                                e);
+                    }
+                }
+            });
         }
     }
 
