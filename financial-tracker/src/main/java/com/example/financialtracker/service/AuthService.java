@@ -48,7 +48,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // Generate Verification Code with 15-minute expiry
-        String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
         user.setVerificationCode(code);
         user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false); // Disable until verified
@@ -116,7 +116,7 @@ public class AuthService {
         }
 
         // Generate new code
-        String newCode = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        String newCode = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
         user.setVerificationCode(newCode);
         user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         user.setVerificationResendCount(user.getVerificationResendCount() + 1);
@@ -248,7 +248,7 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
         user.setDeletionCode(code);
         user.setDeletionCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
