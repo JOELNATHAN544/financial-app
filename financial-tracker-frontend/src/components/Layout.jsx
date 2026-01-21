@@ -18,7 +18,7 @@ const NavButton = ({ onClick, icon, label, active }) => {
   )
 }
 
-const Layout = ({ children, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
+const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
   const [showOfferingNotification, setShowOfferingNotification] = useState(false)
 
   useEffect(() => {
@@ -56,15 +56,30 @@ const Layout = ({ children, onShowSettings, onShowDashboard, onShowBudgets, onSh
 
           <nav className="flex items-center space-x-2">
             {onShowDashboard && (
-              <NavButton onClick={onShowDashboard} icon={FiPieChart} label="Dashboard" />
+              <NavButton 
+                onClick={onShowDashboard} 
+                icon={FiPieChart} 
+                label="Dashboard" 
+                active={activeView === 'dashboard'} 
+              />
             )}
 
             {onShowBudgets && (
-              <NavButton onClick={onShowBudgets} icon={FiTarget} label="Budgets" />
+              <NavButton 
+                onClick={onShowBudgets} 
+                icon={FiTarget} 
+                label="Budgets" 
+                active={activeView === 'budgets'} 
+              />
             )}
 
             {onShowRecurring && (
-              <NavButton onClick={onShowRecurring} icon={FiRepeat} label="Recurring" />
+              <NavButton 
+                onClick={onShowRecurring} 
+                icon={FiRepeat} 
+                label="Recurring" 
+                active={activeView === 'recurring'} 
+              />
             )}
 
             {/* Advisor Link - if we implement strict route later, for now sticking to core */}
