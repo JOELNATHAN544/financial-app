@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { api } from '../api'
 
 const Settings = ({ user, onUpdate, onDelete, onCancel, theme, toggleTheme, onLogout }) => {
@@ -18,6 +18,22 @@ const Settings = ({ user, onUpdate, onDelete, onCancel, theme, toggleTheme, onLo
     // UI State
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
+
+    // Auto-dismiss success messages after 4 seconds
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => setMessage(''), 4000)
+            return () => clearTimeout(timer)
+        }
+    }, [message])
+
+    // Auto-dismiss error messages after 6 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(''), 6000)
+            return () => clearTimeout(timer)
+        }
+    }, [error])
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault()
