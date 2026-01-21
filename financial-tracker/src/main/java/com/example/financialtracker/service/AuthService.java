@@ -37,6 +37,7 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Transactional
     public void registerUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
@@ -46,9 +47,10 @@ public class AuthService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Generate Verification Code
+        // Generate Verification Code with 15-minute expiry
         String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
         user.setVerificationCode(code);
+        user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false); // Disable until verified
 
         User savedUser = userRepository.save(user);
@@ -58,8 +60,9 @@ public class AuthService {
             emailService.sendVerificationEmail(savedUser.getEmail(), code);
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", savedUser.getEmail(), e.getMessage());
+            // Rethrow and let @Transactional roll back the save
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
-        // Function now returns void as we don't issue tokens on registration anymore
     }
 
     public void verifyEmail(String username, String code) {
@@ -74,8 +77,14 @@ public class AuthService {
             throw new RuntimeException("Invalid verification code");
         }
 
+        if (user.getVerificationCodeExpiry() == null ||
+                user.getVerificationCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Verification code has expired. Please request a new one.");
+        }
+
         user.setEnabled(true);
         user.setVerificationCode(null);
+        user.setVerificationCodeExpiry(null);
         userRepository.save(user);
 
         // Send welcome email AFTER verification
@@ -115,6 +124,12 @@ public class AuthService {
         if (!user.isAccountNonLocked()) {
             throw new RuntimeException(
                     "Account is locked due to multiple failed login attempts. Please try again later.");
+        }
+
+        // 2.1 Detect OAuth2 users attempting manual login
+        if (user.getPassword() != null
+                && (user.getPassword().startsWith("OAUTH2_USER_") || !user.getPassword().startsWith("$2"))) {
+            throw new RuntimeException("This account is linked to Google. Please use 'Log in with Google'.");
         }
 
         // 3. Wrap only the authentication call to handle credential failures
@@ -213,7 +228,8 @@ public class AuthService {
 
         // Verify password (skip for OAuth users who don't have BCrypt passwords)
         String storedPassword = user.getPassword();
-        boolean isOAuthUser = storedPassword == null || !storedPassword.startsWith("$2a$");
+        // Regex detects BCrypt $2a$, $2b$, or $2y$ prefixes
+        boolean isOAuthUser = storedPassword == null || !storedPassword.matches("^\\$2[aby]\\$.*");
 
         if (!isOAuthUser && !passwordEncoder.matches(password, storedPassword)) {
             throw new RuntimeException("Invalid password");
