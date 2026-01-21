@@ -347,10 +347,17 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Invalid reset code"));
 
         if (user.getResetPasswordCodeAttempts() >= 5) {
-            throw new RuntimeException("Maximum reset code attempts reached. Please request a new code.");
+            // Generic message to prevent enumeration via lockout status
+            throw new RuntimeException("Invalid reset code");
         }
 
-        if (user.getResetPasswordCode() == null || !user.getResetPasswordCode().equals(code)) {
+        String storedCode = user.getResetPasswordCode();
+        boolean isCodeValid = storedCode != null &&
+                java.security.MessageDigest.isEqual(
+                        storedCode.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        code.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        if (!isCodeValid) {
             user.setResetPasswordCodeAttempts(user.getResetPasswordCodeAttempts() + 1);
             userRepository.save(user);
             throw new RuntimeException("Invalid reset code");
