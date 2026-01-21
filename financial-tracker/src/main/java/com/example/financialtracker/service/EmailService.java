@@ -97,9 +97,13 @@ public class EmailService {
     @Async
     public void sendBudgetExceededAlert(String to, String category, java.math.BigDecimal spent,
             java.math.BigDecimal limit) {
-        String subject = "Budget Exceeded Alert: " + category;
+        // Sanitize input to prevent HTML injection
+        String sanitizedCategory = category != null ? category.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+                : "Unknown";
+
+        String subject = "Budget Exceeded Alert: " + sanitizedCategory;
         String body = "<h1>Budget Exceeded</h1>" +
-                "<p>You have exceeded your budget for <strong>" + category + "</strong>.</p>" +
+                "<p>You have exceeded your budget for <strong>" + sanitizedCategory + "</strong>.</p>" +
                 "<ul>" +
                 "<li><strong>Budget Limit:</strong> " + limit + " XAF</li>" +
                 "<li><strong>Current Spending:</strong> " + spent + " XAF</li>" +

@@ -59,7 +59,7 @@ public class AuthService {
         try {
             emailService.sendVerificationEmail(savedUser.getEmail(), code);
         } catch (Exception e) {
-            log.error("Failed to send verification email to {}: {}", savedUser.getEmail(), e.getMessage());
+            log.error("Failed to send verification email to user {}: {}", savedUser.getUsername(), e.getMessage());
             // Rethrow and let @Transactional roll back the save
             throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
