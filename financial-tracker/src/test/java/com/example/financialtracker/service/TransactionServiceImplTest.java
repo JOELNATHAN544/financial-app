@@ -1,6 +1,5 @@
 package com.example.financialtracker.service;
 
-import com.example.financialtracker.model.MonthlySummary;
 import com.example.financialtracker.model.Transaction;
 import com.example.financialtracker.model.User;
 import com.example.financialtracker.repository.MonthlySummaryRepository;
