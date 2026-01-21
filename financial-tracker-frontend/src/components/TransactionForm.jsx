@@ -12,6 +12,7 @@ const TransactionForm = ({
     credit: '',
     debit: '',
     currency: 'XAF',
+    type: 'debit', // 'debit' for Expense, 'credit' for Income
   })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -42,6 +43,7 @@ const TransactionForm = ({
           : '',
         debit: editingTransaction.debit ? String(editingTransaction.debit) : '',
         currency: editingTransaction.currency || 'XAF',
+        type: editingTransaction.credit ? 'credit' : 'debit',
       })
     } else {
       // Clear form if no transaction is being edited
@@ -51,6 +53,7 @@ const TransactionForm = ({
         credit: '',
         debit: '',
         currency: 'XAF',
+        type: 'debit',
       })
     }
     setErrors({}) // Clear errors when editing state changes
@@ -102,11 +105,13 @@ const TransactionForm = ({
 
     try {
       setIsSubmitting(true)
-      await onSubmit({
+      const submitData = {
         ...formData,
-        credit: formData.credit ? parseFloat(formData.credit) : null,
-        debit: formData.debit ? parseFloat(formData.debit) : null,
-      })
+        credit: formData.type === 'credit' ? (formData.credit ? parseFloat(formData.credit) : 0) : null,
+        debit: formData.type === 'debit' ? (formData.debit ? parseFloat(formData.debit) : 0) : null,
+      }
+
+      await onSubmit(submitData)
       // Reset form after successful submission
       setFormData({
         usedFor: '',
@@ -114,6 +119,7 @@ const TransactionForm = ({
         credit: '',
         debit: '',
         currency: 'XAF',
+        type: 'debit',
       })
       setErrors({})
       // Clear editing state if applicable
@@ -121,7 +127,9 @@ const TransactionForm = ({
         setEditingTransaction(null)
       }
     } catch (error) {
-      setErrors({ submit: error.message })
+      if (error.message !== 'Update cancelled') {
+        setErrors({ submit: error.message })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -129,6 +137,46 @@ const TransactionForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="animate-premium-fade space-y-6">
+      {/* Transaction Type Toggle */}
+      <div className="flex justify-center p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit mx-auto mb-8">
+        <button
+          type="button"
+          onClick={() => {
+            const amount = formData.type === 'debit' ? formData.debit : formData.credit;
+            setFormData(prev => ({
+              ...prev,
+              type: 'credit',
+              credit: amount,
+              debit: ''
+            }));
+          }}
+          className={`px-8 py-3 rounded-xl font-black transition-all duration-300 ${formData.type === 'credit'
+            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-lg scale-105'
+            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+        >
+          Income
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const amount = formData.type === 'credit' ? formData.credit : formData.debit;
+            setFormData(prev => ({
+              ...prev,
+              type: 'debit',
+              debit: amount,
+              credit: ''
+            }));
+          }}
+          className={`px-8 py-3 rounded-xl font-black transition-all duration-300 ${formData.type === 'debit'
+            ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-lg scale-105'
+            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+        >
+          Expense
+        </button>
+      </div>
+
       <div className="space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
         <div className="space-y-2">
           <label className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700">
@@ -285,6 +333,7 @@ const TransactionForm = ({
                 ...prev,
                 usedFor: description,
                 currency: currency,
+                type: isCredit ? 'credit' : 'debit',
                 credit: isCredit ? amount : '',
                 debit: !isCredit ? amount : '',
               }))
@@ -356,68 +405,68 @@ const TransactionForm = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <label
-            htmlFor="credit"
-            className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
-          >
-            Credit Amount (Income)
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              id="credit"
-              name="credit"
-              value={formData.credit}
-              onChange={handleChange}
-              disabled={!!formData.debit && formData.debit !== ''}
-              step="0.01"
-              min="0"
-              className={`input-field pr-16 ${errors.credit ? 'border-rose-500 ring-2 ring-rose-500/20' : ''} ${!!formData.debit && formData.debit !== '' ? 'cursor-not-allowed opacity-40 grayscale' : ''}`}
-              placeholder="0.00"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              {formData.currency}
-            </span>
+      <div className="grid grid-cols-1 gap-6">
+        {formData.type === 'credit' ? (
+          <div className="space-y-2 animate-premium-fade">
+            <label
+              htmlFor="credit"
+              className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
+            >
+              Amount (Income)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                id="credit"
+                name="credit"
+                value={formData.credit}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                className={`input-field pr-16 text-2xl font-black text-indigo-600 dark:text-indigo-400 ${errors.credit ? 'border-rose-500 ring-2 ring-rose-500/20' : ''}`}
+                placeholder="0.00"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">
+                {formData.currency}
+              </span>
+            </div>
+            {errors.credit && (
+              <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
+                {errors.credit}
+              </p>
+            )}
           </div>
-          {errors.credit && (
-            <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
-              {errors.credit}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label
-            htmlFor="debit"
-            className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
-          >
-            Debit Amount (Expense)
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              id="debit"
-              name="debit"
-              value={formData.debit}
-              onChange={handleChange}
-              disabled={!!formData.credit && formData.credit !== ''}
-              step="0.01"
-              min="0"
-              className={`input-field pr-16 ${errors.debit ? 'border-rose-500 ring-2 ring-rose-500/20' : ''} ${!!formData.credit && formData.credit !== '' ? 'cursor-not-allowed opacity-40 grayscale' : ''}`}
-              placeholder="0.00"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-              {formData.currency}
-            </span>
+        ) : (
+          <div className="space-y-2 animate-premium-fade">
+            <label
+              htmlFor="debit"
+              className="dark:text-slate-300 ml-1 block text-sm font-semibold text-slate-700"
+            >
+              Amount (Expense)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                id="debit"
+                name="debit"
+                value={formData.debit}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                className={`input-field pr-16 text-2xl font-black text-rose-600 dark:text-rose-400 ${errors.debit ? 'border-rose-500 ring-2 ring-rose-500/20' : ''}`}
+                placeholder="0.00"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">
+                {formData.currency}
+              </span>
+            </div>
+            {errors.debit && (
+              <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
+                {errors.debit}
+              </p>
+            )}
           </div>
-          {errors.debit && (
-            <p className="dark:text-rose-400 ml-1 mt-1 text-sm font-medium text-rose-600">
-              {errors.debit}
-            </p>
-          )}
-        </div>
+        )}
       </div>
 
       {(errors.amount || errors.submit) && (
