@@ -300,14 +300,27 @@ public class AuthService {
 
     @Transactional
     public void requestPasswordReset(String identifier) {
-        User user = userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier))
-                .orElseThrow(() -> new RuntimeException("No account found with that username or email address."));
+        var userOpt = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier));
+
+        if (userOpt.isEmpty()) {
+            log.warn("Password reset requested for non-existent user: {}", identifier);
+            return;
+        }
+
+        User user = userOpt.get();
+
+        // Limit to 3 resends total
+        if (user.getResetPasswordResendCount() >= 3) {
+            log.info("Reset limit reached for user: {}", identifier);
+            return;
+        }
 
         // Rate limit: 60 seconds cooldown
         if (user.getLastResetPasswordResendAt() != null &&
                 user.getLastResetPasswordResendAt().isAfter(java.time.LocalDateTime.now().minusSeconds(60))) {
-            throw new RuntimeException("Please wait at least 60 seconds before requesting a new reset code.");
+            log.info("Rate limit hit for user: {}", identifier);
+            return;
         }
 
         // Generate new code
