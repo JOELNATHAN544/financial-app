@@ -67,9 +67,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest,
+            jakarta.servlet.http.HttpServletRequest request) {
         try {
-            AuthResponse authResponse = authService.authenticateUser(authRequest);
+            String deviceDetails = request.getHeader("User-Agent");
+            if (deviceDetails == null)
+                deviceDetails = "Unknown Device";
+
+            String ipAddress = request.getHeader("X-Forwarded-For");
+            if (ipAddress == null || ipAddress.isEmpty()) {
+                ipAddress = request.getRemoteAddr();
+            }
+
+            AuthResponse authResponse = authService.authenticateUser(authRequest, deviceDetails, ipAddress);
             return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
             Map<String, String> errorResponse = new HashMap<>();
@@ -105,5 +115,22 @@ public class AuthController {
         refreshTokenService.deleteByToken(refreshToken);
 
         return ResponseEntity.ok(Map.of("message", "Log out successful!"));
+    }
+
+    @PostMapping("/request-deletion")
+    public ResponseEntity<?> requestDeletion(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        authService.requestAccountDeletion(username);
+        return ResponseEntity.ok(Map.of("message", "Verification code sent to email"));
+    }
+
+    @PostMapping("/delete-account")
+    public ResponseEntity<?> deleteAccount(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String password = request.get("password");
+        String code = request.get("code");
+
+        authService.deleteAccount(username, code, password);
+        return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
     }
 }

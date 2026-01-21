@@ -35,6 +35,12 @@ public class User implements UserDetails {
     @Version
     private Long version;
 
+    @Column(name = "deletion_code")
+    private String deletionCode;
+
+    @Column(name = "deletion_code_expiry")
+    private java.time.LocalDateTime deletionCodeExpiry;
+
     // Default constructor
     public User() {
     }
@@ -94,6 +100,22 @@ public class User implements UserDetails {
 
     public void setLockoutExpiry(java.time.LocalDateTime lockoutExpiry) {
         this.lockoutExpiry = lockoutExpiry;
+    }
+
+    public String getDeletionCode() {
+        return deletionCode;
+    }
+
+    public void setDeletionCode(String deletionCode) {
+        this.deletionCode = deletionCode;
+    }
+
+    public java.time.LocalDateTime getDeletionCodeExpiry() {
+        return deletionCodeExpiry;
+    }
+
+    public void setDeletionCodeExpiry(java.time.LocalDateTime deletionCodeExpiry) {
+        this.deletionCodeExpiry = deletionCodeExpiry;
     }
 
     // UserDetails interface methods
