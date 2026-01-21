@@ -9,6 +9,10 @@ import BudgetManager from './components/BudgetManager'
 import RecurringManager from './components/RecurringManager'
 import { api, AuthError } from './api'
 
+import LandingPage from './components/LandingPage'
+import HistoryPage from './components/HistoryPage'
+import ConfirmationModal from './components/ConfirmationModal'
+
 function App() {
   const [transactions, setTransactions] = useState([])
   const [finalizationHistory, setFinalizationHistory] = useState([])
@@ -19,7 +23,21 @@ function App() {
   const [showDashboard, setShowDashboard] = useState(false)
   const [showBudgets, setShowBudgets] = useState(false)
   const [showRecurring, setShowRecurring] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [user, setUser] = useState(null)
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    isDangerous: false
+  })
+
+  // Auth Flow State
+  const [showAuth, setShowAuth] = useState(false)
+  const [authInitialMode, setAuthInitialMode] = useState('login')
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -84,6 +102,9 @@ function App() {
     setShowDashboard(false)
     setShowBudgets(false)
     setShowRecurring(false)
+    setShowHistory(false)
+    setShowAuth(false)
+    setAuthInitialMode('login')
   }
 
   const handleDeleteAccount = () => {
@@ -127,22 +148,49 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      try {
-        await api.delete(`/api/transactions/${id}`)
-        fetchTransactions()
-      } catch (error) {
-        console.error('Error deleting transaction:', error)
+  const handleDelete = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Transaction',
+      message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
+      isDangerous: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/api/transactions/${id}`)
+          fetchTransactions()
+          setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        } catch (error) {
+          console.error('Error deleting transaction:', error)
+        }
       }
-    }
+    })
   }
 
   if (!jwtToken) {
-    return <Auth onLogin={handleLogin} />
+    if (showAuth) {
+      return (
+        <Auth
+          onLogin={handleLogin}
+          onBack={() => setShowAuth(false)}
+          initialMode={authInitialMode}
+        />
+      )
+    }
+    return (
+      <LandingPage
+        onLoginClick={() => {
+          setAuthInitialMode('login')
+          setShowAuth(true)
+        }}
+        onRegisterClick={() => {
+          setAuthInitialMode('register')
+          setShowAuth(true)
+        }}
+      />
+    )
   }
 
-  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : ''
+  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : 'dashboard'
 
   return (
     <Layout
@@ -150,28 +198,48 @@ function App() {
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
-      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); setShowRecurring(false); }}
-      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); setShowRecurring(false); }}
-      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); setShowRecurring(false); }}
-      onShowRecurring={() => { setShowRecurring(true); setShowSettings(false); setShowDashboard(false); setShowBudgets(false); }}
+      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); }}
+      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); }}
+      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); setShowRecurring(false); setShowHistory(false); }}
+      onShowRecurring={() => {
+        setShowDashboard(false)
+        setShowSettings(false)
+        setShowBudgets(false)
+        setShowRecurring(true)
+        setShowHistory(false)
+      }}
+      onShowHistory={() => {
+        setShowDashboard(false)
+        setShowSettings(false)
+        setShowBudgets(false)
+        setShowRecurring(false)
+        setShowHistory(true)
+      }}
     >
       <div className="mx-auto max-w-5xl space-y-10">
         {showSettings ? (
           <Settings
+            jwtToken={jwtToken}
             user={user}
-            onUpdate={fetchUserProfile}
-            onDelete={handleDeleteAccount}
-            onCancel={() => setShowSettings(false)}
             theme={theme}
             toggleTheme={toggleTheme}
+            onDelete={handleDeleteAccount}
+            onCancel={() => setShowSettings(false)}
             onLogout={handleLogout}
+            onUpdate={fetchUserProfile}
           />
-        ) : showDashboard ? (
-          <Dashboard onBack={() => setShowDashboard(false)} />
         ) : showBudgets ? (
-          <BudgetManager />
+          <BudgetManager jwtToken={jwtToken} />
         ) : showRecurring ? (
-          <RecurringManager />
+          <RecurringManager jwtToken={jwtToken} />
+        ) : showHistory ? (
+          <HistoryPage
+            finalizationHistory={finalizationHistory}
+            onBack={() => {
+              setShowHistory(false)
+              setShowDashboard(true)
+            }}
+          />
         ) : (
           <div className="space-y-12">
             <section className="glass-card group relative overflow-hidden p-10">
@@ -212,59 +280,21 @@ function App() {
                 onDelete={handleDelete}
               />
             </section>
+          </div >
+        )
+        }
+      </div >
 
-            <section className="space-y-6">
-              <div className="px-2">
-                <h2 className="dark:text-white text-3xl font-black tracking-tight text-slate-900">
-                  Month-End History
-                </h2>
-                <p className="dark:text-slate-400 mt-1 font-medium text-slate-500">
-                  Archived balances and finalization logs
-                </p>
-              </div>
-              <div className="glass-card overflow-hidden border-none shadow-2xl">
-                <table className="dark:divide-slate-800/50 min-w-full divide-y divide-slate-200/50">
-                  <thead className="dark:bg-slate-900/50 bg-slate-50/50">
-                    <tr>
-                      <th className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500">
-                        Date
-                      </th>
-                      <th className="dark:text-slate-400 px-8 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-500">
-                        Month/Year
-                      </th>
-                      <th className="dark:text-slate-400 px-8 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500">
-                        Closing Balance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="dark:divide-slate-800/50 divide-y divide-slate-200/50">
-                    {finalizationHistory.map((log) => (
-                      <tr
-                        key={log.id}
-                        className="dark:hover:bg-indigo-900/10 transition-colors duration-300 hover:bg-indigo-50/30"
-                      >
-                        <td className="dark:text-slate-400 whitespace-nowrap px-8 py-5 text-sm font-medium text-slate-600">
-                          {new Date(log.finalizationDate).toLocaleString()}
-                        </td>
-                        <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-sm font-bold text-slate-900">
-                          {log.month}/{log.year}
-                        </td>
-                        <td className="dark:text-slate-100 whitespace-nowrap px-8 py-5 text-right text-sm font-black text-slate-900">
-                          {Number(log.closingBalance).toLocaleString('en-CM')}{' '}
-                          <span className="text-[10px] text-slate-400">
-                            FCFA
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        )}
-      </div>
-    </Layout>
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.isDangerous ? 'Delete' : 'Confirm'}
+        isDangerous={confirmModal.isDangerous}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
+    </Layout >
   )
 }
 

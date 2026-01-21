@@ -41,6 +41,21 @@ public class User implements UserDetails {
     @Column(name = "deletion_code_expiry")
     private java.time.LocalDateTime deletionCodeExpiry;
 
+    @Column(name = "enabled")
+    private Boolean enabled = false;
+
+    @Column(name = "verification_code", length = 6)
+    private String verificationCode;
+
+    @Column(name = "verification_code_expiry")
+    private java.time.LocalDateTime verificationCodeExpiry;
+
+    @Column(name = "verification_resend_count", nullable = false)
+    private int verificationResendCount = 0;
+
+    @Column(name = "last_verification_resend_at")
+    private java.time.LocalDateTime lastVerificationResendAt;
+
     // Default constructor
     public User() {
     }
@@ -49,6 +64,7 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = false; // Explicitly set to false for new users
     }
 
     // Getters and Setters
@@ -118,11 +134,45 @@ public class User implements UserDetails {
         this.deletionCodeExpiry = deletionCodeExpiry;
     }
 
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public java.time.LocalDateTime getVerificationCodeExpiry() {
+        return verificationCodeExpiry;
+    }
+
+    public void setVerificationCodeExpiry(java.time.LocalDateTime verificationCodeExpiry) {
+        this.verificationCodeExpiry = verificationCodeExpiry;
+    }
+
+    public int getVerificationResendCount() {
+        return verificationResendCount;
+    }
+
+    public void setVerificationResendCount(int verificationResendCount) {
+        this.verificationResendCount = verificationResendCount;
+    }
+
+    public java.time.LocalDateTime getLastVerificationResendAt() {
+        return lastVerificationResendAt;
+    }
+
+    public void setLastVerificationResendAt(java.time.LocalDateTime lastVerificationResendAt) {
+        this.lastVerificationResendAt = lastVerificationResendAt;
+    }
+
     // UserDetails interface methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // For simplicity, we are not implementing roles/authorities yet.
-        // You can return a default role or an empty list.
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
@@ -146,7 +196,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(enabled);
     }
 
     @Override

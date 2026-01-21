@@ -7,6 +7,8 @@ import com.example.financialtracker.payload.TokenRefreshRequest;
 import com.example.financialtracker.service.AuthService;
 import com.example.financialtracker.service.RefreshTokenService;
 import com.example.financialtracker.model.RefreshToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthService authService;
@@ -56,13 +60,48 @@ public class AuthController {
             }
 
             User user = new User(authRequest.getUsername(), authRequest.getEmail(), authRequest.getPassword());
-            AuthResponse authResponse = authService.registerUser(user);
+            authService.registerUser(user);
 
-            return ResponseEntity.ok(authResponse);
+            return ResponseEntity
+                    .ok(Map.of("message", "Registration successful. Please check your email for verification code."));
         } catch (RuntimeException e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String code = request.get("code");
+
+        if (username == null || username.isBlank() || code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username and verification code are required"));
+        }
+
+        try {
+            authService.verifyEmail(username, code);
+            return ResponseEntity.ok(Map.of("message", "Email verified successfully. You can now login."));
+        } catch (RuntimeException e) {
+            log.warn("Email verification failed for user {}: {}", username, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username is required"));
+        }
+
+        try {
+            authService.resendVerificationCode(username);
+            return ResponseEntity.ok(Map.of("message", "Verification code resent successfully."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -120,8 +159,17 @@ public class AuthController {
     @PostMapping("/request-deletion")
     public ResponseEntity<?> requestDeletion(@RequestBody Map<String, String> request) {
         String username = request.get("username");
-        authService.requestAccountDeletion(username);
-        return ResponseEntity.ok(Map.of("message", "Verification code sent to email"));
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username is required"));
+        }
+
+        try {
+            authService.requestAccountDeletion(username);
+            return ResponseEntity.ok(Map.of("message", "Verification code sent to email"));
+        } catch (RuntimeException e) {
+            log.error("Failed to request deletion for user {}: {}", username, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PostMapping("/delete-account")
@@ -130,7 +178,21 @@ public class AuthController {
         String password = request.get("password");
         String code = request.get("code");
 
-        authService.deleteAccount(username, code, password);
-        return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
+        if (username == null || username.isBlank() ||
+                password == null || password.isBlank() ||
+                code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid request parameters"));
+        }
+
+        try {
+            authService.deleteAccount(username, code, password);
+            return ResponseEntity.ok(Map.of("message", "Account successfully deleted"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Failed to delete account for user {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An internal error occurred while processing your request"));
+        }
     }
 }

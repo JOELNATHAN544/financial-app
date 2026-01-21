@@ -37,7 +37,8 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
-    public AuthResponse registerUser(User user) {
+    @Transactional
+    public void registerUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
@@ -45,20 +46,90 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Generate Verification Code with 15-minute expiry
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+        user.setVerificationCode(code);
+        user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        user.setEnabled(false); // Disable until verified
+
         User savedUser = userRepository.save(user);
 
-        // Send welcome email - wrap in try-catch to avoid blocking registration on
-        // email failure
+        // Send Verification Email
         try {
-            emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getUsername());
+            emailService.sendVerificationEmail(savedUser.getEmail(), code);
         } catch (Exception e) {
-            log.error("Failed to send welcome email to {}: {}", savedUser.getEmail(), e.getMessage());
+            log.error("Failed to send verification email to user {}: {}", savedUser.getUsername(), e.getMessage());
+            // Rethrow and let @Transactional roll back the save
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
+        }
+    }
+
+    public void verifyEmail(String username, String code) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isEnabled()) {
+            return; // Already verified
         }
 
-        String jwt = jwtUtil.generateToken(savedUser.getUsername());
-        String refreshToken = refreshTokenService.createRefreshToken(savedUser.getUsername()).getToken();
+        if (code == null || !code.equals(user.getVerificationCode())) {
+            throw new RuntimeException("Invalid verification code");
+        }
 
-        return new AuthResponse(jwt, refreshToken);
+        if (user.getVerificationCodeExpiry() == null ||
+                user.getVerificationCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Verification code has expired. Please request a new one.");
+        }
+
+        user.setEnabled(true);
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiry(null);
+        userRepository.save(user);
+
+        // Send welcome email AFTER verification
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    @Transactional
+    public void resendVerificationCode(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isEnabled()) {
+            throw new RuntimeException("Account is already verified. Please sign in.");
+        }
+
+        // Limit to 3 resends total
+        if (user.getVerificationResendCount() >= 3) {
+            throw new RuntimeException("Maximum resend attempts reached. Please register again if your code expired.");
+        }
+
+        // Rate limit: 60 seconds cooldown
+        if (user.getLastVerificationResendAt() != null &&
+                user.getLastVerificationResendAt().isAfter(java.time.LocalDateTime.now().minusSeconds(60))) {
+            throw new RuntimeException("Please wait at least 60 seconds before requesting a new code.");
+        }
+
+        // Generate new code
+        String newCode = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+        user.setVerificationCode(newCode);
+        user.setVerificationCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        user.setVerificationResendCount(user.getVerificationResendCount() + 1);
+        user.setLastVerificationResendAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+
+        // Send email
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), newCode);
+        } catch (Exception e) {
+            log.error("Failed to resend verification email to user {}: {}", user.getUsername(), e.getMessage());
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
+        }
     }
 
     public String generateAccessToken(String username) {
@@ -81,10 +152,23 @@ public class AuthService {
                 .or(() -> userRepository.findByEmail(loginIdentifier))
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
+        // 1.1 Check Enabled Status
+        if (!user.isEnabled()) {
+            throw new RuntimeException("Account not verified. Please check your email for the verification code.");
+        }
+
         // 2. Check for lockout
         if (!user.isAccountNonLocked()) {
             throw new RuntimeException(
                     "Account is locked due to multiple failed login attempts. Please try again later.");
+        }
+
+        // 2.1 Detect OAuth2 users attempting manual login (Regex detects BCrypt $2a$,
+        // $2b$, or $2y$ prefixes)
+        if (user.getPassword() != null
+                && (user.getPassword().startsWith("OAUTH2_USER_")
+                        || !user.getPassword().matches("^\\$2[aby]\\$\\d+\\$.+"))) {
+            throw new RuntimeException("This account is linked to Google. Please use 'Log in with Google'.");
         }
 
         // 3. Wrap only the authentication call to handle credential failures
@@ -111,7 +195,7 @@ public class AuthService {
                             "Account Locked",
                             "Your account has been locked for 30 minutes due to 5 consecutive failed login attempts.");
                 } catch (Exception ex) {
-                    log.error("Failed to send lockout email to {}: {}", user.getEmail(), ex.getMessage());
+                    log.error("Failed to send lockout email to user {}: {}", user.getUsername(), ex.getMessage());
                 }
                 throw new RuntimeException(
                         "Account is locked due to multiple failed login attempts. Please try again later.");
@@ -164,7 +248,7 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+        String code = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
         user.setDeletionCode(code);
         user.setDeletionCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
@@ -181,8 +265,12 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Verify password first (Critical Security)
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        // Verify password (skip for OAuth users who don't have BCrypt passwords)
+        String storedPassword = user.getPassword();
+        // Regex detects BCrypt $2a$, $2b$, or $2y$ prefixes
+        boolean isOAuthUser = storedPassword == null || !storedPassword.matches("^\\$2[aby]\\$\\d+\\$.+");
+
+        if (!isOAuthUser && !passwordEncoder.matches(password, storedPassword)) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -194,13 +282,18 @@ public class AuthService {
         }
 
         // Execute deletion
-        userService.deleteUser(user);
+        try {
+            userService.deleteUser(user);
+        } catch (Exception e) {
+            log.error("Failed to delete user {}: {}", username, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete account: " + e.getMessage());
+        }
 
         try {
             emailService.sendEmail(user.getEmail(), "Account Deleted",
                     "<h1>Goodbye</h1><p>Your account has been successfully deleted.</p>");
         } catch (Exception e) {
-            // Ignore
+            // Ignore email errors
         }
     }
 }

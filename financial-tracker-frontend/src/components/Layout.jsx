@@ -18,7 +18,7 @@ const NavButton = ({ onClick, icon, label, active }) => {
   )
 }
 
-const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring }) => {
+const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring, onShowHistory }) => {
   const [showOfferingNotification, setShowOfferingNotification] = useState(false)
 
   useEffect(() => {
@@ -56,34 +56,40 @@ const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowB
 
           <nav className="flex items-center space-x-2">
             {onShowDashboard && (
-              <NavButton 
-                onClick={onShowDashboard} 
-                icon={FiPieChart} 
-                label="Dashboard" 
-                active={activeView === 'dashboard'} 
+              <NavButton
+                onClick={onShowDashboard}
+                icon={FiPieChart}
+                label="Dashboard"
+                active={activeView === 'dashboard'}
               />
             )}
 
             {onShowBudgets && (
-              <NavButton 
-                onClick={onShowBudgets} 
-                icon={FiTarget} 
-                label="Budgets" 
-                active={activeView === 'budgets'} 
+              <NavButton
+                onClick={onShowBudgets}
+                icon={FiTarget}
+                label="Budgets"
+                active={activeView === 'budgets'}
               />
             )}
 
             {onShowRecurring && (
-              <NavButton 
-                onClick={onShowRecurring} 
-                icon={FiRepeat} 
-                label="Recurring" 
-                active={activeView === 'recurring'} 
+              <NavButton
+                onClick={onShowRecurring}
+                icon={FiRepeat}
+                label="Recurring"
+                active={activeView === 'recurring'}
               />
             )}
 
-            {/* Advisor Link - if we implement strict route later, for now sticking to core */}
-            {/* <NavButton onClick={onShowAdvisor} icon={FiActivity} label="Advisor" /> */}
+            {onShowHistory && (
+              <NavButton
+                onClick={onShowHistory}
+                icon={FiActivity}
+                label="History"
+                active={activeView === 'history'}
+              />
+            )}
           </nav>
 
           <div className="flex items-center pl-6 border-l border-slate-200 dark:border-slate-800 ml-6">

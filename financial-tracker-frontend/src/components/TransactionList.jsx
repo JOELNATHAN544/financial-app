@@ -1,8 +1,6 @@
 import React from 'react'
 
 const TransactionList = ({ transactions, onEdit, onDelete }) => {
-  console.log('Transactions received in TransactionList.jsx:', transactions)
-
   // Get current month and year
   const currentDate = new Date()
   const monthYear = currentDate.toLocaleString('default', {
@@ -96,9 +94,11 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
                   </td>
                   <td className="dark:text-slate-100 px-8 py-5 text-sm font-bold text-slate-900">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-0.5">
-                        {transaction.category || 'Others'}
-                      </span>
+                      {transaction.debit && (
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 mb-0.5">
+                          {transaction.category || 'Others'}
+                        </span>
+                      )}
                       <span className="truncate max-w-[200px]">{transaction.usedFor}</span>
                     </div>
                   </td>
