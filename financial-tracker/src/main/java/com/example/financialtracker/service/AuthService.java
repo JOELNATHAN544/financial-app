@@ -211,8 +211,11 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Verify password first (Critical Security)
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        // Verify password (skip for OAuth users who don't have BCrypt passwords)
+        String storedPassword = user.getPassword();
+        boolean isOAuthUser = storedPassword == null || !storedPassword.startsWith("$2a$");
+
+        if (!isOAuthUser && !passwordEncoder.matches(password, storedPassword)) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -224,13 +227,18 @@ public class AuthService {
         }
 
         // Execute deletion
-        userService.deleteUser(user);
+        try {
+            userService.deleteUser(user);
+        } catch (Exception e) {
+            log.error("Failed to delete user {}: {}", username, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete account: " + e.getMessage());
+        }
 
         try {
             emailService.sendEmail(user.getEmail(), "Account Deleted",
                     "<h1>Goodbye</h1><p>Your account has been successfully deleted.</p>");
         } catch (Exception e) {
-            // Ignore
+            // Ignore email errors
         }
     }
 }
