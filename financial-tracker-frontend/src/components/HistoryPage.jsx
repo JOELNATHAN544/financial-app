@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { FiClock, FiArrowLeft, FiDownload } from 'react-icons/fi'
-import { api } from '../api'
+
 
 const HistoryPage = ({ finalizationHistory, onBack }) => {
     const [downloadingIds, setDownloadingIds] = useState(new Set())
