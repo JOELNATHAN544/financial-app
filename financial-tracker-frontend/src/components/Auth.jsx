@@ -10,6 +10,7 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [isLogin, setIsLogin] = useState(initialMode === 'login')
 
   // Verification State
@@ -19,6 +20,7 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
   const handleAuth = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccessMessage('')
 
     if (!isLogin && !isVerifying) {
       if (password !== confirmPassword) {
@@ -50,7 +52,7 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
         setIsLogin(true)
         setVerificationCode('')
         setError('')
-        alert('Email verified! Please sign in.')
+        setSuccessMessage('Email verified! Please sign in.')
         return
       }
 
@@ -227,6 +229,12 @@ function Auth({ onLogin, onBack, initialMode = 'login' }) {
             {error && (
               <div className="dark:text-rose-400 animate-pulse rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-xs font-bold text-rose-600">
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="dark:text-emerald-400 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-xs font-bold text-emerald-600">
+                {successMessage}
               </div>
             )}
 
