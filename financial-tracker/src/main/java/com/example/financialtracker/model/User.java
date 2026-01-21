@@ -29,22 +29,22 @@ public class User implements UserDetails {
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
 
-    @Transient
+    @Column(name = "lockout_expiry")
     private java.time.LocalDateTime lockoutExpiry;
 
     @Version
     private Long version;
 
-    @Transient
+    @Column(name = "deletion_code")
     private String deletionCode;
 
-    @Transient
+    @Column(name = "deletion_code_expiry")
     private java.time.LocalDateTime deletionCodeExpiry;
 
-    @Transient
-    private Boolean enabled = true;
+    @Column(name = "enabled")
+    private Boolean enabled = false;
 
-    @Transient
+    @Column(name = "verification_code")
     private String verificationCode;
 
     // Default constructor
@@ -55,7 +55,7 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.enabled = true; // Default to true so login always works
+        this.enabled = false; // Explicitly set to false for new users
     }
 
     // Getters and Setters
