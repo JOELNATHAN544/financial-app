@@ -178,7 +178,9 @@ public class AuthController {
         String password = request.get("password");
         String code = request.get("code");
 
-        if (username == null || username.isBlank() || code == null || code.isBlank()) {
+        if (username == null || username.isBlank() ||
+                password == null || password.isBlank() ||
+                code == null || code.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid request parameters"));
         }
 
