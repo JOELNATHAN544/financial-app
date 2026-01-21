@@ -187,7 +187,7 @@ function App() {
     )
   }
 
-  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : ''
+  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : ''
 
   return (
     <Layout
@@ -220,9 +220,10 @@ function App() {
             user={user}
             theme={theme}
             toggleTheme={toggleTheme}
-            onDeleteAccount={handleDeleteAccount}
+            onDelete={handleDeleteAccount}
             onCancel={() => setShowSettings(false)}
             onLogout={handleLogout}
+            onUpdate={fetchUserProfile}
           />
         ) : showBudgets ? (
           <BudgetManager jwtToken={jwtToken} />
