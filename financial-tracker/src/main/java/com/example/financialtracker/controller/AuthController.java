@@ -89,6 +89,22 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username is required"));
+        }
+
+        try {
+            authService.resendVerificationCode(username);
+            return ResponseEntity.ok(Map.of("message", "Verification code resent successfully."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody AuthRequest authRequest,
             jakarta.servlet.http.HttpServletRequest request) {
@@ -143,8 +159,17 @@ public class AuthController {
     @PostMapping("/request-deletion")
     public ResponseEntity<?> requestDeletion(@RequestBody Map<String, String> request) {
         String username = request.get("username");
-        authService.requestAccountDeletion(username);
-        return ResponseEntity.ok(Map.of("message", "Verification code sent to email"));
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username is required"));
+        }
+
+        try {
+            authService.requestAccountDeletion(username);
+            return ResponseEntity.ok(Map.of("message", "Verification code sent to email"));
+        } catch (RuntimeException e) {
+            log.error("Failed to request deletion for user {}: {}", username, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PostMapping("/delete-account")
