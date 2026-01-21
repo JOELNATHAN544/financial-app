@@ -76,9 +76,7 @@ public class UserServiceImpl implements UserService {
 
         // 7. Finalization Logs
         if (finalizationLogRepository != null) {
-            // Assuming similar pattern or findAllByUser
-            // Skipping for now if generic findByUser not guaranteed, or handled by DB
-            // cascade
+            finalizationLogRepository.deleteAll(finalizationLogRepository.findAllByUser(user));
         }
 
         // 8. Delete User
