@@ -204,9 +204,14 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(Map.of("message", "Username or email is required"));
             }
             authService.requestPasswordReset(identifier);
-            return ResponseEntity.ok(Map.of("message", "Password reset code sent to your email."));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            // Return a generic message to prevent account enumeration
+            return ResponseEntity.ok(
+                    Map.of("message", "If an account is associated with this identifier, a reset code has been sent."));
+        } catch (Exception e) {
+            // Log the error but return the same generic message to the user
+            log.error("Error during password reset request: {}", e.getMessage());
+            return ResponseEntity.ok(
+                    Map.of("message", "If an account is associated with this identifier, a reset code has been sent."));
         }
     }
 
