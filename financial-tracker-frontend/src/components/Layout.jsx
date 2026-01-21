@@ -5,6 +5,7 @@ const NavButton = ({ onClick, icon, label, active }) => {
   const Icon = icon
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`group flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 font-bold ${active
         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
