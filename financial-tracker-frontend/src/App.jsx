@@ -142,8 +142,11 @@ function App() {
     return <Auth onLogin={handleLogin} />
   }
 
+  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : ''
+
   return (
     <Layout
+      activeView={activeView}
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
