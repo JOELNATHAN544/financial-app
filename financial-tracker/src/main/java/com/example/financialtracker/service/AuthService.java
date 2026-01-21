@@ -344,7 +344,7 @@ public class AuthService {
     public void resetPassword(String identifier, String code, String newPassword) {
         User user = userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByEmail(identifier))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid reset code"));
 
         if (user.getResetPasswordCodeAttempts() >= 5) {
             throw new RuntimeException("Maximum reset code attempts reached. Please request a new code.");
