@@ -50,6 +50,12 @@ public class User implements UserDetails {
     @Column(name = "verification_code_expiry")
     private java.time.LocalDateTime verificationCodeExpiry;
 
+    @Column(name = "verification_resend_count", nullable = false)
+    private int verificationResendCount = 0;
+
+    @Column(name = "last_verification_resend_at")
+    private java.time.LocalDateTime lastVerificationResendAt;
+
     // Default constructor
     public User() {
     }
@@ -146,6 +152,22 @@ public class User implements UserDetails {
 
     public void setVerificationCodeExpiry(java.time.LocalDateTime verificationCodeExpiry) {
         this.verificationCodeExpiry = verificationCodeExpiry;
+    }
+
+    public int getVerificationResendCount() {
+        return verificationResendCount;
+    }
+
+    public void setVerificationResendCount(int verificationResendCount) {
+        this.verificationResendCount = verificationResendCount;
+    }
+
+    public java.time.LocalDateTime getLastVerificationResendAt() {
+        return lastVerificationResendAt;
+    }
+
+    public void setLastVerificationResendAt(java.time.LocalDateTime lastVerificationResendAt) {
+        this.lastVerificationResendAt = lastVerificationResendAt;
     }
 
     // UserDetails interface methods
