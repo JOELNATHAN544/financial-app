@@ -3,27 +3,41 @@ import { FiClock, FiArrowLeft, FiDownload } from 'react-icons/fi'
 import { api } from '../api'
 
 const HistoryPage = ({ finalizationHistory, onBack }) => {
-    const [downloading, setDownloading] = useState(false)
+    const [downloadingIds, setDownloadingIds] = useState(new Set())
 
     const downloadSummary = async (summaryId) => {
-        setDownloading(true)
+        setDownloadingIds(prev => new Set(prev).add(summaryId))
         try {
-            const response = await api.get(`/api/reports/monthly/${summaryId}/download`, {
-                responseType: 'blob'
+            // Bypass api wrapper for blob handling
+            const token = localStorage.getItem('jwtToken')
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/reports/monthly/${summaryId}/download`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
 
-            const url = window.URL.createObjectURL(new Blob([response]))
+            if (!response.ok) throw new Error('Download failed')
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
             const link = document.createElement('a')
             link.href = url
             link.setAttribute('download', `Monthly_Summary_${summaryId}.pdf`)
             document.body.appendChild(link)
             link.click()
             link.parentNode.removeChild(link)
+            window.URL.revokeObjectURL(url)
         } catch (error) {
             console.error('Failed to download summary', error)
+            // Use local state if we had a generalized notification system, 
+            // but for now keeping it simple as per PR feedback context
             alert("Failed to download summary. Please try again.")
         } finally {
-            setDownloading(false)
+            setDownloadingIds(prev => {
+                const next = new Set(prev)
+                next.delete(summaryId)
+                return next
+            })
         }
     }
 
@@ -82,8 +96,8 @@ const HistoryPage = ({ finalizationHistory, onBack }) => {
                                     </p>
                                     <button
                                         onClick={() => downloadSummary(log.id)}
-                                        disabled={downloading}
-                                        className="mt-2 text-xs font-bold text-slate-400 hover:text-indigo-500 flex items-center justify-end gap-1 ml-auto transition-colors"
+                                        disabled={downloadingIds.has(log.id)}
+                                        className="mt-2 text-xs font-bold text-slate-400 hover:text-indigo-500 flex items-center justify-end gap-1 ml-auto transition-colors disabled:opacity-50"
                                     >
                                         <FiDownload className="w-3 h-3" />
                                         Download PDF
