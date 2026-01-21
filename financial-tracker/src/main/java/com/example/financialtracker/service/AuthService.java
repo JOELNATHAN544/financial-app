@@ -150,8 +150,7 @@ public class AuthService {
         // 1. User lookup outside the try-catch for authentication
         User user = userRepository.findByUsername(loginIdentifier)
                 .or(() -> userRepository.findByEmail(loginIdentifier))
-                .orElseThrow(() -> new RuntimeException(
-                        "Account not found. Please check your username/email or create a new account."));
+                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
         // 1.1 Check Enabled Status
         if (!user.isEnabled()) {
@@ -203,7 +202,7 @@ public class AuthService {
             }
 
             userRepository.save(user);
-            throw new RuntimeException("Incorrect password. Please try again or use 'Forgot Password'.");
+            throw new RuntimeException("Invalid username or password");
         }
 
         // 4. Generate JWT after successful authentication
@@ -304,7 +303,7 @@ public class AuthService {
                 .or(() -> userRepository.findByEmail(identifier));
 
         if (userOpt.isEmpty()) {
-            log.warn("Password reset requested for non-existent user: {}", identifier);
+            log.warn("Password reset requested for non-existent account");
             return;
         }
 
@@ -312,14 +311,14 @@ public class AuthService {
 
         // Limit to 3 resends total
         if (user.getResetPasswordResendCount() >= 3) {
-            log.info("Reset limit reached for user: {}", identifier);
+            log.info("Reset limit reached for account");
             return;
         }
 
         // Rate limit: 60 seconds cooldown
         if (user.getLastResetPasswordResendAt() != null &&
                 user.getLastResetPasswordResendAt().isAfter(java.time.LocalDateTime.now().minusSeconds(60))) {
-            log.info("Rate limit hit for user: {}", identifier);
+            log.info("Rate limit hit for account");
             return;
         }
 
@@ -346,7 +345,13 @@ public class AuthService {
                 .or(() -> userRepository.findByEmail(identifier))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (user.getResetPasswordCodeAttempts() >= 5) {
+            throw new RuntimeException("Maximum reset code attempts reached. Please request a new code.");
+        }
+
         if (user.getResetPasswordCode() == null || !user.getResetPasswordCode().equals(code)) {
+            user.setResetPasswordCodeAttempts(user.getResetPasswordCodeAttempts() + 1);
+            userRepository.save(user);
             throw new RuntimeException("Invalid reset code");
         }
 
@@ -358,11 +363,15 @@ public class AuthService {
         // Update password
         user.setPassword(passwordEncoder.encode(newPassword));
 
+        // Revoke all existing sessions
+        refreshTokenService.deleteByUsername(user.getUsername());
+
         // Clear reset fields
         user.setResetPasswordCode(null);
         user.setResetPasswordCodeExpiry(null);
         user.setResetPasswordResendCount(0);
         user.setLastResetPasswordResendAt(null);
+        user.setResetPasswordCodeAttempts(0);
 
         // Also reset lockout just in case
         user.setFailedLoginAttempts(0);
