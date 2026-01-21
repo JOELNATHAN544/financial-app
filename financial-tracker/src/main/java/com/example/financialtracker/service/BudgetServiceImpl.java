@@ -4,7 +4,6 @@ import com.example.financialtracker.model.Budget;
 import com.example.financialtracker.model.User;
 import com.example.financialtracker.repository.BudgetRepository;
 import com.example.financialtracker.repository.TransactionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,13 +94,11 @@ public class BudgetServiceImpl implements BudgetService {
                             .orElse(BigDecimal.ZERO);
 
                     if (currentSpent.compareTo(budget.getAmount()) > 0) {
-                        if (currentSpent.compareTo(budget.getAmount()) > 0) {
-                            emailService.sendBudgetExceededAlert(
-                                    user.getEmail(),
-                                    category,
-                                    currentSpent,
-                                    budget.getAmount());
-                        }
+                        emailService.sendBudgetExceededAlert(
+                                user.getEmail(),
+                                category,
+                                currentSpent,
+                                budget.getAmount());
                     }
                 });
     }
