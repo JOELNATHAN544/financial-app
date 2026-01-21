@@ -10,8 +10,7 @@ const Settings = ({ user, onUpdate, onDelete, onCancel, theme, toggleTheme, onLo
 
     // Security State
     const [password, setPassword] = useState('')
-    const [currentPassword, setCurrentPassword] = useState('') // For password change verification if needed, or just new password. simpler to just allow update like ProfileSettings did.
-    const [isDeleting, setIsDeleting] = useState(false)
+
     const [deletionStep, setDeletionStep] = useState('initial') // initial, verifying
     const [deletionCode, setDeletionCode] = useState('')
     const [deletionPassword, setDeletionPassword] = useState('')
@@ -95,8 +94,8 @@ const Settings = ({ user, onUpdate, onDelete, onCancel, theme, toggleTheme, onLo
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex w-full items-center rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 ${activeTab === tab.id
-                                        ? 'premium-gradient text-white shadow-lg shadow-indigo-500/30'
-                                        : 'text-slate-500 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:bg-slate-800/50'
+                                    ? 'premium-gradient text-white shadow-lg shadow-indigo-500/30'
+                                    : 'text-slate-500 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:bg-slate-800/50'
                                     }`}
                             >
                                 {tab.label}
