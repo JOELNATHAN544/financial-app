@@ -33,7 +33,7 @@ public class EmailService {
             helper.setText(body, true); // true = html
 
             mailSender.send(message);
-        } catch (jakarta.mail.MessagingException e) {
+        } catch (jakarta.mail.MessagingException | org.springframework.mail.MailAuthenticationException e) {
             log.warn("Error sending email to {}: {}", to, e.getMessage());
         }
     }
