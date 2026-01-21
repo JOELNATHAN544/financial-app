@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
+import com.example.financialtracker.model.FinalizationLog;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -76,7 +78,8 @@ public class UserServiceImpl implements UserService {
 
         // 7. Finalization Logs
         if (finalizationLogRepository != null) {
-            finalizationLogRepository.deleteAll(finalizationLogRepository.findAllByUser(user));
+            List<FinalizationLog> logs = finalizationLogRepository.findAllByUser(user);
+            finalizationLogRepository.deleteAll(logs);
         }
 
         // 8. Delete User
