@@ -195,4 +195,48 @@ public class AuthController {
                     .body(Map.of("error", "An internal error occurred while processing your request"));
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        try {
+            String identifier = request.get("identifier");
+            if (identifier == null || identifier.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Username or email is required"));
+            }
+            authService.requestPasswordReset(identifier);
+            return ResponseEntity.ok(Map.of("message", "Password reset code sent to your email."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        try {
+            String identifier = request.get("identifier");
+            String code = request.get("code");
+            String newPassword = request.get("newPassword");
+
+            if (identifier == null || identifier.isBlank() ||
+                    code == null || code.isBlank() ||
+                    newPassword == null || newPassword.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "All fields are required"));
+            }
+
+            // Password complexity validation (reusing same rules as registration)
+            if (newPassword.length() < 8 ||
+                    !newPassword.matches(".*[a-zA-Z].*") ||
+                    !newPassword.matches(".*\\d.*") ||
+                    !newPassword.matches(".*[!@#$%^&*(),.?\":{}|<>\\-_=+\\[\\]\\\\/~`|;:'\"].*")) {
+                return ResponseEntity.badRequest().body(Map.of("message",
+                        "Password must be at least 8 characters long and contain a combination of letters, numbers, and special characters."));
+            }
+
+            authService.resetPassword(identifier, code, newPassword);
+            return ResponseEntity
+                    .ok(Map.of("message", "Password reset successful. You can now log in with your new password."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
