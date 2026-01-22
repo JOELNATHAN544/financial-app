@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiPieChart, FiTarget, FiRepeat, FiSettings, FiActivity } from 'react-icons/fi'
+import { FiPieChart, FiTarget, FiRepeat, FiSettings, FiActivity, FiCreditCard } from 'react-icons/fi'
 
 const NavButton = ({ onClick, icon, label, active }) => {
   const Icon = icon
@@ -18,7 +18,7 @@ const NavButton = ({ onClick, icon, label, active }) => {
   )
 }
 
-const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring, onShowHistory }) => {
+const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowBudgets, onShowRecurring, onShowHistory, onShowTransactions }) => {
   const [showOfferingNotification, setShowOfferingNotification] = useState(false)
 
   useEffect(() => {
@@ -61,6 +61,15 @@ const Layout = ({ children, activeView, onShowSettings, onShowDashboard, onShowB
                 icon={FiPieChart}
                 label="Dashboard"
                 active={activeView === 'dashboard'}
+              />
+            )}
+
+            {onShowTransactions && (
+              <NavButton
+                onClick={onShowTransactions}
+                icon={FiCreditCard}
+                label="Transactions"
+                active={activeView === 'transactions'}
               />
             )}
 

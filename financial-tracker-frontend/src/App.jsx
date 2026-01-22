@@ -20,10 +20,11 @@ function App() {
   const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken'))
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
   const [showSettings, setShowSettings] = useState(false)
-  const [showDashboard, setShowDashboard] = useState(false)
+  const [showDashboard, setShowDashboard] = useState(true)
   const [showBudgets, setShowBudgets] = useState(false)
   const [showRecurring, setShowRecurring] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [showTransactions, setShowTransactions] = useState(false)
   const [user, setUser] = useState(null)
 
   // Confirmation Modal State
@@ -103,6 +104,7 @@ function App() {
     setShowBudgets(false)
     setShowRecurring(false)
     setShowHistory(false)
+    setShowTransactions(false)
     setShowAuth(false)
     setAuthInitialMode('login')
   }
@@ -219,7 +221,7 @@ function App() {
     )
   }
 
-  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : 'dashboard'
+  const activeView = showDashboard ? 'dashboard' : showBudgets ? 'budgets' : showRecurring ? 'recurring' : showHistory ? 'history' : showTransactions ? 'transactions' : 'transactions'
 
   return (
     <Layout
@@ -227,15 +229,16 @@ function App() {
       onLogout={handleLogout}
       theme={theme}
       toggleTheme={toggleTheme}
-      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); }}
-      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); }}
-      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); setShowRecurring(false); setShowHistory(false); }}
+      onShowSettings={() => { setShowSettings(true); setShowDashboard(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); setShowTransactions(false); }}
+      onShowDashboard={() => { setShowDashboard(true); setShowSettings(false); setShowBudgets(false); setShowRecurring(false); setShowHistory(false); setShowTransactions(false); }}
+      onShowBudgets={() => { setShowBudgets(true); setShowSettings(false); setShowDashboard(false); setShowRecurring(false); setShowHistory(false); setShowTransactions(false); }}
       onShowRecurring={() => {
         setShowDashboard(false)
         setShowSettings(false)
         setShowBudgets(false)
         setShowRecurring(true)
         setShowHistory(false)
+        setShowTransactions(false)
       }}
       onShowHistory={() => {
         setShowDashboard(false)
@@ -243,6 +246,15 @@ function App() {
         setShowBudgets(false)
         setShowRecurring(false)
         setShowHistory(true)
+        setShowTransactions(false)
+      }}
+      onShowTransactions={() => {
+        setShowDashboard(false)
+        setShowSettings(false)
+        setShowBudgets(false)
+        setShowRecurring(false)
+        setShowHistory(false)
+        setShowTransactions(true)
       }}
     >
       <div className="mx-auto max-w-5xl space-y-10">
@@ -261,6 +273,7 @@ function App() {
           <Dashboard
             onBack={() => {
               setShowDashboard(false)
+              setShowTransactions(true)
             }}
           />
         ) : showBudgets ? (
@@ -272,7 +285,7 @@ function App() {
             finalizationHistory={finalizationHistory}
             onBack={() => {
               setShowHistory(false)
-              setShowDashboard(true)
+              setShowTransactions(true)
             }}
           />
         ) : (
@@ -315,7 +328,7 @@ function App() {
                 onDelete={handleDelete}
               />
             </section>
-          </div >
+          </div>
         )
         }
       </div >
