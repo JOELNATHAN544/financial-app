@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../api';
+import { api, API_BASE_URL } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
 
 const RegisterScreen = ({ navigation }) => {
@@ -45,7 +45,10 @@ const RegisterScreen = ({ navigation }) => {
         [{ text: 'Continue', onPress: () => navigation.navigate('VerifyEmail', { username }) }]
       );
     } catch (error) {
-      Alert.alert('Registration Error', error.message);
+      const msg = error.message === 'Network request failed'
+        ? `Network request failed. Ensure your phone is on the same Wi-Fi as your computer. Current Backend URL: ${API_BASE_URL}`
+        : error.message;
+      Alert.alert('Registration Error', msg);
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +117,7 @@ const RegisterScreen = ({ navigation }) => {
               >
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={22}
+                  size={24}
                   color={Colors.textMuted}
                 />
               </TouchableOpacity>
@@ -139,7 +142,7 @@ const RegisterScreen = ({ navigation }) => {
               >
                 <Ionicons
                   name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                  size={22}
+                  size={24}
                   color={Colors.textMuted}
                 />
               </TouchableOpacity>
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: Spacing.xl,
     paddingTop: 60,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: 'center',
     shadowColor: Colors.black,
@@ -220,38 +223,38 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '900',
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.xs,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: Spacing.xl,
   },
   inputGroup: {
     width: '100%',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.text,
     marginBottom: Spacing.sm,
     marginLeft: 4,
   },
   input: {
     backgroundColor: Colors.inputBg,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: Spacing.md,
-    fontSize: 16,
+    fontSize: 17,
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
-    height: 56,
+    height: 64, // Larger input
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -259,11 +262,11 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     paddingHorizontal: Spacing.lg,
-    height: 56,
+    height: 64,
     backgroundColor: Colors.inputBg,
     justifyContent: 'center',
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     borderLeftWidth: 0,
@@ -273,23 +276,23 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   primaryBtn: {
-    borderRadius: 16,
-    height: 58,
+    borderRadius: 18,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
   },
   btnText: {
     color: Colors.white,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   secondaryBtn: {
     marginTop: Spacing.xl,
-    paddingBottom: 10,
+    paddingBottom: 20,
   },
   secondaryBtnText: {
     color: Colors.textMuted,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   linkHighlight: {
