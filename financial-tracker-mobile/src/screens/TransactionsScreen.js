@@ -3,19 +3,20 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     ActivityIndicator,
     Alert,
     FlatList,
     StatusBar,
     TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
-import { Colors, Spacing } from '../constants/Theme';
-import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
 
 const TransactionsScreen = () => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation();
@@ -119,13 +120,13 @@ const TransactionsScreen = () => {
                         onPress={() => navigation.navigate('EditTransaction', { transaction: item })}
                         style={styles.actionBtn}
                     >
-                        <Ionicons name="pencil-outline" size={16} color={Colors.primary} />
+                        <Ionicons name="pencil-outline" size={16} color={colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => handleDelete(item.id)}
                         style={styles.actionBtn}
                     >
-                        <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                        <Ionicons name="trash-outline" size={16} color={colors.error} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -135,14 +136,14 @@ const TransactionsScreen = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Transactions</Text>
             </View>
@@ -154,7 +155,7 @@ const TransactionsScreen = () => {
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="receipt-outline" size={64} color={Colors.textMuted} />
+                        <Ionicons name="receipt-outline" size={64} color={colors.textMuted} />
                         <Text style={styles.emptyText}>No transactions found</Text>
                     </View>
                 }
@@ -163,27 +164,27 @@ const TransactionsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     header: {
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderBottomColor: colors.border,
     },
     headerTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     listContent: {
         padding: Spacing.lg,
@@ -192,12 +193,17 @@ const styles = StyleSheet.create({
     transactionCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 18,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     iconContainer: {
         width: 44,
@@ -211,19 +217,19 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     usedFor: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 16,
         fontWeight: '700',
         marginBottom: 2,
     },
     category: {
-        color: Colors.primary,
+        color: colors.primary,
         fontSize: 12,
         fontWeight: '600',
         marginBottom: 2,
     },
     date: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 12,
         fontWeight: '500',
     },
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
     },
     runningBal: {
         fontSize: 11,
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '600',
         marginBottom: 4,
     },
@@ -248,10 +254,10 @@ const styles = StyleSheet.create({
     actionBtn: {
         padding: 6,
         marginLeft: 8,
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     emptyContainer: {
         alignItems: 'center',
@@ -259,7 +265,7 @@ const styles = StyleSheet.create({
         marginTop: 100,
     },
     emptyText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 16,
         fontWeight: '600',
         marginTop: 16,
