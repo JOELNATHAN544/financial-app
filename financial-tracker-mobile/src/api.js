@@ -6,6 +6,7 @@ export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || `http://${DE
 
 let isRefreshing = false;
 let failedQueue = [];
+let onUnauthorized = null;
 
 const processQueue = (error, token = null) => {
     failedQueue.forEach((prom) => {
@@ -40,6 +41,7 @@ const apiFetch = async (endpoint, options = {}) => {
 
                 if (!refreshToken) {
                     await AsyncStorage.multiRemove(['jwtToken', 'refreshToken']);
+                    if (onUnauthorized) onUnauthorized();
                     throw new Error('Unauthorized');
                 }
 
@@ -66,6 +68,8 @@ const apiFetch = async (endpoint, options = {}) => {
                     if (!refreshResponse.ok) {
                         await AsyncStorage.multiRemove(['jwtToken', 'refreshToken']);
                         processQueue(new Error('Refresh failed'), null);
+                        isRefreshing = false;
+                        if (onUnauthorized) onUnauthorized();
                         throw new Error('Session expired');
                     }
 
@@ -87,6 +91,7 @@ const apiFetch = async (endpoint, options = {}) => {
                 } catch (err) {
                     isRefreshing = false;
                     processQueue(err, null);
+                    if (onUnauthorized) onUnauthorized();
                     throw err;
                 }
             }
@@ -130,5 +135,8 @@ export const api = {
             jwtToken: await AsyncStorage.getItem('jwtToken'),
             refreshToken: await AsyncStorage.getItem('refreshToken')
         };
+    },
+    setOnUnauthorized: (callback) => {
+        onUnauthorized = callback;
     }
 };
