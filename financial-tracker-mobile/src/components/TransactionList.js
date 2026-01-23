@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Colors, Spacing } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 function formatDate(dateArr) {
   if (!Array.isArray(dateArr) || dateArr.length < 3) return 'Invalid Date';
@@ -9,6 +10,8 @@ function formatDate(dateArr) {
 }
 
 const TransactionList = ({ transactions, onEdit, onDelete }) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   if (!transactions.length) {
     return (
       <View style={styles.emptyContainer}>
@@ -20,7 +23,7 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
   const renderItem = ({ item }) => (
     <View style={styles.transactionCard}>
       <View style={styles.cardLeft}>
-        <View style={[styles.indicator, { backgroundColor: item.credit ? Colors.success : Colors.error }]} />
+        <View style={[styles.indicator, { backgroundColor: item.credit ? colors.success : colors.error }]} />
         <View>
           <Text style={styles.usedFor} numberOfLines={1}>{item.usedFor}</Text>
           <Text style={styles.dateText}>{formatDate(item.date)}</Text>
@@ -28,7 +31,7 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
       </View>
 
       <View style={styles.cardRight}>
-        <Text style={[styles.amount, { color: item.credit ? Colors.success : Colors.error }]}>
+        <Text style={[styles.amount, { color: item.credit ? colors.success : colors.error }]}>
           {item.credit ? `+${Number(item.credit).toLocaleString()}` : `-${Number(item.debit).toLocaleString()}`}
         </Text>
         <Text style={styles.balanceText}>Balance: {Number(item.balance).toLocaleString()}</Text>
@@ -51,18 +54,18 @@ const TransactionList = ({ transactions, onEdit, onDelete }) => {
         data={[...transactions].sort((a, b) => b.id - a.id)}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        scrollEnabled={false} // Since it's inside a ScrollView in Dashboard
+        scrollEnabled={false}
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors) => StyleSheet.create({
   container: {
     paddingBottom: Spacing.md,
   },
   transactionCard: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: colors.cardBg,
     borderRadius: 18,
     padding: Spacing.md,
     marginBottom: Spacing.md,
@@ -70,7 +73,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   cardLeft: {
     flexDirection: 'row',
@@ -84,13 +87,13 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
   },
   usedFor: {
-    color: Colors.text,
+    color: colors.text,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
   dateText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   balanceText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -115,12 +118,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   editText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: '700',
   },
   deleteText: {
-    color: Colors.error,
+    color: colors.error,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: '500',
   },
