@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -91,7 +92,17 @@ function RootNavigator() {
   const [jwtToken, setJwtToken] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Define handleLogout early so it can be used in useEffect
+  const handleLogout = async () => {
+    await api.clearTokens();
+    setIsAuthenticated(false);
+    setJwtToken(null);
+  };
+
   useEffect(() => {
+    // Register global unauthorized handler
+    api.setOnUnauthorized(handleLogout);
+
     const checkAuthStatus = async () => {
       try {
         const { jwtToken } = await api.getTokens();
@@ -112,12 +123,6 @@ function RootNavigator() {
   const handleLogin = (token) => {
     setIsAuthenticated(true);
     setJwtToken(token);
-  };
-
-  const handleLogout = async () => {
-    await api.clearTokens();
-    setIsAuthenticated(false);
-    setJwtToken(null);
   };
 
   if (loading || authLoading) {
@@ -173,8 +178,10 @@ function RootNavigator() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <RootNavigator />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootNavigator />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
