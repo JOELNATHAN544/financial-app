@@ -39,6 +39,7 @@ const apiFetch = async (endpoint, options = {}) => {
                 const refreshToken = await AsyncStorage.getItem('refreshToken');
 
                 if (!refreshToken) {
+                    await AsyncStorage.multiRemove(['jwtToken', 'refreshToken']);
                     throw new Error('Unauthorized');
                 }
 
