@@ -10,10 +10,13 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import { api } from '../api';
+import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import { api, API_BASE_URL } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
 
 const LoginScreen = ({ navigation, onLogin }) => {
@@ -34,9 +37,30 @@ const LoginScreen = ({ navigation, onLogin }) => {
       await api.saveTokens(data.jwt, data.refreshToken);
       onLogin(data.jwt);
     } catch (error) {
-      Alert.alert('Login Error', error.message);
+      const msg = error.message === 'Network request failed'
+        ? `Network request failed. Ensure your phone is on the same Wi-Fi as your computer. Current Backend URL: ${API_BASE_URL}`
+        : error.message;
+      Alert.alert('Login Error', msg);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      if (!API_BASE_URL) throw new Error('API_BASE_URL is not defined');
+
+      const authUrl = `${API_BASE_URL}/oauth2/authorization/google`;
+      console.log('Opening Auth URL:', authUrl);
+
+      const result = await WebBrowser.openBrowserAsync(authUrl).catch(async (e) => {
+        console.warn('WebBrowser failed, trying Linking:', e);
+        return await Linking.openURL(authUrl);
+      });
+
+    } catch (error) {
+      Alert.alert('Google Login Error', 'Could not open browser. Please try again or check your internet connection.');
+      console.error('Google Login Error:', error);
     }
   };
 
@@ -138,10 +162,14 @@ const LoginScreen = ({ navigation, onLogin }) => {
 
           <TouchableOpacity
             style={styles.googleBtn}
-            onPress={() => Alert.alert('Coming Soon', 'Google Login integration is in progress.')}
+            onPress={handleGoogleLogin}
           >
             <View style={styles.googleBtnContent}>
-              <FontAwesome name="google" size={20} color="#EA4335" style={{ marginRight: 12 }} />
+              <Image
+                source={require('../../assets/google_logo.png')}
+                style={{ width: 24, height: 24 }}
+                resizeMode="contain"
+              />
               <Text style={styles.googleBtnText}>Log in with Google</Text>
             </View>
           </TouchableOpacity>
@@ -214,38 +242,38 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '900',
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.xs,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: Spacing.xl,
   },
   inputGroup: {
     width: '100%',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl, // More space
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.text,
     marginBottom: Spacing.sm,
     marginLeft: 4,
   },
   input: {
     backgroundColor: Colors.inputBg,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: Spacing.md,
-    fontSize: 16,
+    fontSize: 17, // Larger font
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
-    height: 56,
+    height: 64, // Larger input
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -253,11 +281,11 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     paddingHorizontal: Spacing.lg,
-    height: 56,
+    height: 64,
     backgroundColor: Colors.inputBg,
     justifyContent: 'center',
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     borderLeftWidth: 0,
@@ -310,19 +338,20 @@ const styles = StyleSheet.create({
   },
   googleBtn: {
     width: '100%',
-    height: 58,
-    borderRadius: 16,
-    borderWidth: 1,
+    height: 64,
+    borderRadius: 18,
+    borderWidth: 1.5,
     borderColor: Colors.border,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },
   googleBtnText: {
     color: Colors.text,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    marginLeft: 16,
   },
   googleBtnContent: {
     flexDirection: 'row',
