@@ -12,14 +12,18 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { api, API_BASE_URL } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const LoginScreen = ({ navigation, onLogin }) => {
+  const { colors, isDark } = useTheme();
+  const styles = getStyles(colors, isDark);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -69,13 +73,14 @@ const LoginScreen = ({ navigation, onLogin }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.cardContainer}>
           <TouchableOpacity
             style={styles.backTopBtn}
             onPress={() => navigation.navigate('Welcome')}
           >
-            <Ionicons name="chevron-back" size={24} color={Colors.textMuted} />
+            <Ionicons name="chevron-back" size={24} color={colors.textMuted} />
             <Text style={styles.backTopText}>Back</Text>
           </TouchableOpacity>
 
@@ -98,7 +103,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
               value={username}
               onChangeText={setUsername}
               placeholder="Enter username or email"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -112,7 +117,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="........"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
@@ -123,7 +128,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={22}
-                  color={Colors.textMuted}
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
@@ -147,7 +152,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
               end={{ x: 1, y: 0 }}
             >
               {isLoading ? (
-                <ActivityIndicator color={Colors.white} />
+                <ActivityIndicator color={colors.white} />
               ) : (
                 <Text style={styles.btnText}>Sign In</Text>
               )}
@@ -188,10 +193,10 @@ const LoginScreen = ({ navigation, onLogin }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -199,13 +204,13 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   cardContainer: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: colors.cardBg,
     borderRadius: 24,
     padding: Spacing.xl,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: 'center',
-    shadowColor: Colors.black,
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -222,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backTopText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 4,
@@ -237,43 +242,43 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logoText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: 32,
     fontWeight: '800',
   },
   title: {
     fontSize: 34,
     fontWeight: '900',
-    color: Colors.text,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: Spacing.xs,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: Spacing.xl,
   },
   inputGroup: {
     width: '100%',
-    marginBottom: Spacing.xl, // More space
+    marginBottom: Spacing.xl,
   },
   label: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.text,
+    color: colors.text,
     marginBottom: Spacing.sm,
     marginLeft: 4,
   },
   input: {
-    backgroundColor: Colors.inputBg,
+    backgroundColor: colors.inputBg,
     borderRadius: 16,
     padding: Spacing.md,
-    fontSize: 17, // Larger font
-    color: Colors.text,
+    fontSize: 17,
+    color: colors.text,
     borderWidth: 1,
-    borderColor: Colors.border,
-    height: 64, // Larger input
+    borderColor: colors.border,
+    height: 64,
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -282,12 +287,12 @@ const styles = StyleSheet.create({
   eyeButton: {
     paddingHorizontal: Spacing.lg,
     height: 64,
-    backgroundColor: Colors.inputBg,
+    backgroundColor: colors.inputBg,
     justifyContent: 'center',
     borderTopRightRadius: 16,
     borderBottomRightRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     borderLeftWidth: 0,
   },
   forgotPassLink: {
@@ -295,7 +300,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   forgotPassText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -308,13 +313,13 @@ const styles = StyleSheet.create({
     height: 58,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   btnText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -327,11 +332,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: Spacing.md,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -341,14 +346,14 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.02)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },
   googleBtnText: {
-    color: Colors.text,
+    color: colors.text,
     fontSize: 17,
     fontWeight: '700',
     marginLeft: 16,
@@ -362,12 +367,12 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   secondaryBtnText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: '500',
   },
   linkHighlight: {
-    color: Colors.primary,
+    color: colors.primary,
     fontWeight: '700',
   },
 });
