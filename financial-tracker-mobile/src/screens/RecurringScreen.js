@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     ActivityIndicator,
     Alert,
     StatusBar,
@@ -11,11 +10,13 @@ import {
     TouchableOpacity,
     ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const CATEGORIES = [
     'Food', 'Transport', 'Rent', 'Utilities', 'Entertainment',
@@ -25,6 +26,8 @@ const CATEGORIES = [
 const FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
 
 const RecurringScreen = () => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [recurring, setRecurring] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -98,21 +101,21 @@ const RecurringScreen = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Recurring</Text>
                 <TouchableOpacity
                     onPress={() => setShowForm(!showForm)}
                     style={styles.addBtn}
                 >
-                    <Ionicons name={showForm ? "close" : "add"} size={24} color={Colors.white} />
+                    <Ionicons name={showForm ? "close" : "add"} size={24} color={colors.white} />
                 </TouchableOpacity>
             </View>
 
@@ -128,7 +131,7 @@ const RecurringScreen = () => {
                                 value={formData.description}
                                 onChangeText={(text) => setFormData({ ...formData, description: text })}
                                 placeholder="e.g. Netflix Subscription"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                             />
                         </View>
 
@@ -160,7 +163,7 @@ const RecurringScreen = () => {
                                 value={formData.amount}
                                 onChangeText={(text) => setFormData({ ...formData, amount: text })}
                                 placeholder="e.g. 5000"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                                 keyboardType="numeric"
                             />
                         </View>
@@ -201,7 +204,7 @@ const RecurringScreen = () => {
 
                 {recurring.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="repeat-outline" size={64} color={Colors.textMuted} />
+                        <Ionicons name="repeat-outline" size={64} color={colors.textMuted} />
                         <Text style={styles.emptyText}>No recurring transactions</Text>
                         <Text style={styles.emptyHint}>Tap + to schedule automatic payments</Text>
                     </View>
@@ -215,7 +218,7 @@ const RecurringScreen = () => {
                                         <Text style={styles.description}>{item.description}</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
-                                        <Ionicons name="trash-outline" size={20} color={Colors.error} />
+                                        <Ionicons name="trash-outline" size={20} color={colors.error} />
                                     </TouchableOpacity>
                                 </View>
 
@@ -225,7 +228,7 @@ const RecurringScreen = () => {
                                 </View>
 
                                 <View style={styles.nextRun}>
-                                    <Ionicons name="calendar-outline" size={12} color={Colors.textMuted} />
+                                    <Ionicons name="calendar-outline" size={12} color={colors.textMuted} />
                                     <Text style={styles.nextRunText}>
                                         Next: {new Date(item.nextRunDate).toLocaleDateString()}
                                     </Text>
@@ -239,16 +242,16 @@ const RecurringScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -257,18 +260,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderBottomColor: colors.border,
     },
     headerTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     addBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: Colors.primary,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -277,37 +280,37 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     formCard: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: Spacing.lg,
         marginBottom: Spacing.xl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     formTitle: {
         fontSize: 20,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.lg,
     },
     inputGroup: {
         marginBottom: Spacing.lg,
     },
     label: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 14,
         fontWeight: '700',
         marginBottom: Spacing.sm,
         marginLeft: 4,
     },
     input: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         fontSize: 16,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     categoryScroll: {
         flexDirection: 'row',
@@ -317,22 +320,22 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 10,
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
         marginRight: 8,
     },
     categoryChipActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     categoryText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '700',
         fontSize: 12,
     },
     categoryTextActive: {
-        color: Colors.white,
+        color: colors.white,
     },
     frequencyContainer: {
         flexDirection: 'row',
@@ -343,21 +346,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 12,
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     freqChipActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     freqText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '700',
         fontSize: 12,
     },
     freqTextActive: {
-        color: Colors.white,
+        color: colors.white,
     },
     submitBtn: {
         borderRadius: 16,
@@ -367,7 +370,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     submitText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 16,
         fontWeight: '800',
     },
@@ -377,13 +380,13 @@ const styles = StyleSheet.create({
         marginTop: 80,
     },
     emptyText: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 16,
         fontWeight: '700',
         marginTop: 16,
     },
     emptyHint: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 13,
         marginTop: 8,
     },
@@ -391,11 +394,11 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     recurringCard: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: Spacing.lg,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -406,7 +409,7 @@ const styles = StyleSheet.create({
     frequency: {
         fontSize: 10,
         fontWeight: '900',
-        color: Colors.primary,
+        color: colors.primary,
         textTransform: 'uppercase',
         letterSpacing: 1.5,
         marginBottom: 4,
@@ -414,7 +417,7 @@ const styles = StyleSheet.create({
     description: {
         fontSize: 18,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     deleteBtn: {
         padding: 4,
@@ -425,12 +428,12 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     category: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 13,
         fontWeight: '600',
     },
     amount: {
-        color: Colors.error,
+        color: colors.error,
         fontSize: 15,
         fontWeight: '900',
     },
@@ -439,11 +442,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: Colors.border,
+        borderTopColor: colors.border,
         gap: 6,
     },
     nextRunText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 10,
         fontWeight: '700',
         fontFamily: 'monospace',
