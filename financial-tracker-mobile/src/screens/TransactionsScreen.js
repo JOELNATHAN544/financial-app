@@ -70,7 +70,8 @@ const TransactionsScreen = () => {
                     onPress: async () => {
                         try {
                             await api.delete(`/api/transactions/${id}`);
-                            setTransactions(prev => prev.filter(t => t.id !== id));
+                            // Re-fetch to recalculate running balances correctly
+                            fetchTransactions();
                         } catch (error) {
                             Alert.alert('Delete Error', error.message);
                         }

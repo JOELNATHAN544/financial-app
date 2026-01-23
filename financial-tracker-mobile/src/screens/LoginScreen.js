@@ -53,7 +53,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
       const authUrl = `${API_BASE_URL}/oauth2/authorization/google`;
       console.log('Opening Auth URL:', authUrl);
 
-      const result = await WebBrowser.openBrowserAsync(authUrl).catch(async (e) => {
+      const result = await WebBrowser.openAuthSessionAsync(authUrl).catch(async (e) => {
         console.warn('WebBrowser failed, trying Linking:', e);
         return await Linking.openURL(authUrl);
       });
