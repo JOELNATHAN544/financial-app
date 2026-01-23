@@ -14,8 +14,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
+import { StatusBar } from 'react-native';
 
 const VerifyEmailScreen = ({ navigation, route }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const { username: initialUsername } = route.params || {};
     const [username, setUsername] = useState(initialUsername || '');
     const [code, setCode] = useState('');
@@ -64,6 +68,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                 <View style={styles.cardContainer}>
                     <Text style={styles.title}>Check your Inbox</Text>
@@ -76,7 +81,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
                             value={username}
                             onChangeText={setUsername}
                             placeholder="Your username"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             autoCapitalize="none"
                             editable={!initialUsername}
                         />
@@ -89,7 +94,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
                             value={code}
                             onChangeText={setCode}
                             placeholder="000000"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             keyboardType="number-pad"
                             maxLength={6}
                         />
@@ -107,7 +112,7 @@ const VerifyEmailScreen = ({ navigation, route }) => {
                             end={{ x: 1, y: 0 }}
                         >
                             {isLoading ? (
-                                <ActivityIndicator color={Colors.white} />
+                                <ActivityIndicator color={colors.white} />
                             ) : (
                                 <Text style={styles.btnText}>Verify Account</Text>
                             )}
@@ -136,10 +141,10 @@ const VerifyEmailScreen = ({ navigation, route }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     scrollContainer: {
         flexGrow: 1,
@@ -147,13 +152,13 @@ const styles = StyleSheet.create({
         padding: Spacing.lg,
     },
     cardContainer: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 24,
         padding: Spacing.xl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
         alignItems: 'center',
-        shadowColor: Colors.black,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,
         shadowRadius: 20,
@@ -162,13 +167,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         textAlign: 'center',
         marginBottom: Spacing.xs,
     },
     subtitle: {
         fontSize: 14,
-        color: Colors.textMuted,
+        color: colors.textMuted,
         textAlign: 'center',
         marginBottom: Spacing.xl,
     },
@@ -179,18 +184,18 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 13,
         fontWeight: '600',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.sm,
         marginLeft: 4,
     },
     input: {
-        backgroundColor: Colors.inputBg,
+        backgroundColor: colors.inputBg,
         borderRadius: 12,
         padding: Spacing.md,
         fontSize: 15,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     inputDisabled: {
         opacity: 0.6,
@@ -206,7 +211,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     btnText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 16,
         fontWeight: '700',
     },
@@ -214,19 +219,19 @@ const styles = StyleSheet.create({
         marginTop: Spacing.xl,
     },
     secondaryBtnText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 13,
         fontWeight: '500',
     },
     linkHighlight: {
-        color: Colors.primary,
+        color: colors.primary,
         fontWeight: '700',
     },
     backBtn: {
         marginTop: Spacing.lg,
     },
     backBtnText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 12,
         fontWeight: '600',
         textDecorationLine: 'underline',
