@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useAudio } from 'expo-audio';
+import { useAudioPlayer } from 'expo-audio';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
 import { useTheme } from '../context/ThemeContext';
@@ -32,7 +32,7 @@ const AddTransactionScreen = ({ navigation }) => {
     const [category, setCategory] = useState('Others');
     const [loading, setLoading] = useState(false);
 
-    const successAudio = useAudio({ uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' });
+    const successAudio = useAudioPlayer({ uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' });
 
     const playSuccessSound = async () => {
         try {
