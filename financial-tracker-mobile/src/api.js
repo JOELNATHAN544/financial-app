@@ -91,7 +91,6 @@ const apiFetch = async (endpoint, options = {}) => {
                 } catch (err) {
                     isRefreshing = false;
                     processQueue(err, null);
-                    if (onUnauthorized) onUnauthorized();
                     throw err;
                 }
             }
