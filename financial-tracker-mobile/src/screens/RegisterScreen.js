@@ -1,13 +1,32 @@
-import { api } from '../api';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { api, API_BASE_URL } from '../api';
+import { Colors, Spacing, Gradients } from '../constants/Theme';
 
 const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -19,14 +38,17 @@ const RegisterScreen = ({ navigation }) => {
 
     setIsLoading(true);
     try {
-      await api.post('/api/auth/register', { username, password });
+      await api.post('/api/auth/register', { username, email, password });
       Alert.alert(
         'Success',
-        'Registration successful! Please log in.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        'Registration successful! We will now verify your email.',
+        [{ text: 'Continue', onPress: () => navigation.navigate('VerifyEmail', { username }) }]
       );
     } catch (error) {
-      Alert.alert('Registration Error', error.message);
+      const msg = error.message === 'Network request failed'
+        ? `Network request failed. Ensure your phone is on the same Wi-Fi as your computer. Current Backend URL: ${API_BASE_URL}`
+        : error.message;
+      Alert.alert('Registration Error', msg);
     } finally {
       setIsLoading(false);
     }
@@ -37,10 +59,18 @@ const RegisterScreen = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.formCard}>
-          <Text style={styles.title}>FinanceFlow</Text>
-          <Text style={styles.subtitle}>Create your secure account</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        <View style={styles.cardContainer}>
+          <TouchableOpacity
+            style={styles.backTopBtn}
+            onPress={() => navigation.navigate('Welcome')}
+          >
+            <Ionicons name="chevron-back" size={24} color={Colors.textMuted} />
+            <Text style={styles.backTopText}>Back</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join FinanceFlow and start tracking</Text>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Username</Text>
@@ -48,7 +78,22 @@ const RegisterScreen = ({ navigation }) => {
               style={styles.input}
               value={username}
               onChangeText={setUsername}
-              placeholder="e.g. nathan2024"
+              placeholder="choose a username"
+              placeholderTextColor={Colors.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email address</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="name@example.com"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -56,36 +101,71 @@ const RegisterScreen = ({ navigation }) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Min. 6 characters"
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="........"
+                placeholderTextColor={Colors.textMuted}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={24}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Repeat password"
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="........"
+                placeholderTextColor={Colors.textMuted}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                  size={24}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, isLoading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={isLoading}
+            style={styles.primaryBtnWrapper}
           >
-            <Text style={styles.btnText}>
-              {isLoading ? 'Creating account...' : 'Get Started'}
-            </Text>
+            <LinearGradient
+              colors={Gradients.premium}
+              style={styles.primaryBtn}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.btnText}>Get Started</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -93,7 +173,7 @@ const RegisterScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('Login')}
           >
             <Text style={styles.secondaryBtnText}>
-              Already have an account? Sign in
+              Already have an account? <Text style={styles.linkHighlight}>Sign in</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -105,82 +185,120 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.background,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: Spacing.lg,
   },
-  formCard: {
-    backgroundColor: 'white',
+  cardContainer: {
+    backgroundColor: Colors.cardBg,
     borderRadius: 24,
-    padding: 32,
-    shadowColor: '#6366f1',
+    padding: Spacing.xl,
+    paddingTop: 60,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 20,
-    elevation: 5,
+    elevation: 10,
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  backTopBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backTopText: {
+    color: Colors.textMuted,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '900',
+    color: Colors.text,
     textAlign: 'center',
-    color: '#6366f1',
-    marginBottom: 8,
+    marginBottom: Spacing.xs,
   },
   subtitle: {
     fontSize: 16,
+    color: Colors.textMuted,
     textAlign: 'center',
-    marginBottom: 32,
-    color: '#64748b',
+    marginBottom: Spacing.xl,
   },
   inputGroup: {
-    marginBottom: 20,
+    width: '100%',
+    marginBottom: Spacing.xl,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#1e293b',
+    backgroundColor: Colors.inputBg,
+    borderRadius: 16,
+    padding: Spacing.md,
+    fontSize: 17,
+    color: Colors.text,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.border,
+    height: 64, // Larger input
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eyeButton: {
+    paddingHorizontal: Spacing.lg,
+    height: 64,
+    backgroundColor: Colors.inputBg,
+    justifyContent: 'center',
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderLeftWidth: 0,
+  },
+  primaryBtnWrapper: {
+    width: '100%',
+    marginTop: Spacing.md,
   },
   primaryBtn: {
-    backgroundColor: '#6366f1',
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: 18,
+    height: 64,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  btnDisabled: {
-    opacity: 0.6,
   },
   btnText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '700',
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: '800',
   },
   secondaryBtn: {
-    marginTop: 24,
-    alignItems: 'center',
+    marginTop: Spacing.xl,
+    paddingBottom: 20,
   },
   secondaryBtnText: {
-    color: '#6366f1',
-    fontSize: 14,
-    fontWeight: '600',
+    color: Colors.textMuted,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  linkHighlight: {
+    color: Colors.primary,
+    fontWeight: '700',
   },
 });
 
-export default RegisterScreen; 
+export default RegisterScreen;

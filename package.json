@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "expo": "^54.0.32",
     "react-icons": "^5.5.0"
   }
 }
