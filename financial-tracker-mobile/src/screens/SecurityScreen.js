@@ -5,17 +5,21 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     ScrollView,
     Alert,
     ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
+import { StatusBar } from 'react-native';
 
 const SecurityScreen = ({ navigation }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [passwords, setPasswords] = useState({
         current: '',
         new: '',
@@ -60,9 +64,10 @@ const SecurityScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={Colors.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Security & Privacy</Text>
             </View>
@@ -79,12 +84,12 @@ const SecurityScreen = ({ navigation }) => {
                                 value={passwords.current}
                                 onChangeText={(text) => setPasswords({ ...passwords, current: text })}
                                 placeholder="Enter current password"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                                 secureTextEntry={!showCurrent}
                                 autoCapitalize="none"
                             />
                             <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)} style={styles.eyeBtn}>
-                                <Ionicons name={showCurrent ? 'eye-off' : 'eye'} size={20} color={Colors.textMuted} />
+                                <Ionicons name={showCurrent ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -97,12 +102,12 @@ const SecurityScreen = ({ navigation }) => {
                                 value={passwords.new}
                                 onChangeText={(text) => setPasswords({ ...passwords, new: text })}
                                 placeholder="Enter new password"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                                 secureTextEntry={!showNew}
                                 autoCapitalize="none"
                             />
                             <TouchableOpacity onPress={() => setShowNew(!showNew)} style={styles.eyeBtn}>
-                                <Ionicons name={showNew ? 'eye-off' : 'eye'} size={20} color={Colors.textMuted} />
+                                <Ionicons name={showNew ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -115,12 +120,12 @@ const SecurityScreen = ({ navigation }) => {
                                 value={passwords.confirm}
                                 onChangeText={(text) => setPasswords({ ...passwords, confirm: text })}
                                 placeholder="Confirm new password"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                                 secureTextEntry={!showConfirm}
                                 autoCapitalize="none"
                             />
                             <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)} style={styles.eyeBtn}>
-                                <Ionicons name={showConfirm ? 'eye-off' : 'eye'} size={20} color={Colors.textMuted} />
+                                <Ionicons name={showConfirm ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -133,7 +138,7 @@ const SecurityScreen = ({ navigation }) => {
                             end={{ x: 1, y: 0 }}
                         >
                             {loading ? (
-                                <ActivityIndicator color={Colors.white} />
+                                <ActivityIndicator color={colors.white} />
                             ) : (
                                 <Text style={styles.saveBtnText}>Change Password</Text>
                             )}
@@ -144,7 +149,7 @@ const SecurityScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Privacy Options</Text>
                     <View style={styles.privacyCard}>
-                        <Ionicons name="shield-checkmark" size={24} color={Colors.success} />
+                        <Ionicons name="shield-checkmark" size={24} color={colors.success} />
                         <Text style={styles.privacyText}>Your data is encrypted and secure</Text>
                     </View>
                 </View>
@@ -153,10 +158,10 @@ const SecurityScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -164,7 +169,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderBottomColor: colors.border,
     },
     backBtn: {
         marginRight: 16,
@@ -172,7 +177,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     content: {
         padding: Spacing.lg,
@@ -184,14 +189,14 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.lg,
     },
     inputGroup: {
         marginBottom: Spacing.lg,
     },
     label: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 14,
         fontWeight: '700',
         marginBottom: Spacing.sm,
@@ -201,14 +206,14 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     input: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         paddingRight: 50,
         fontSize: 16,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     eyeBtn: {
         position: 'absolute',
@@ -223,23 +228,23 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     saveBtnText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 16,
         fontWeight: '800',
     },
     privacyCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: Spacing.lg,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
         gap: 12,
     },
     privacyText: {
         flex: 1,
-        color: Colors.text,
+        color: colors.text,
         fontSize: 14,
         fontWeight: '600',
     },

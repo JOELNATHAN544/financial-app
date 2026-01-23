@@ -5,16 +5,18 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     ScrollView,
     Alert,
     ActivityIndicator,
+    StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const CATEGORIES = [
     'Food', 'Transport', 'Rent', 'Utilities', 'Entertainment',
@@ -22,25 +24,19 @@ const CATEGORIES = [
 ];
 
 const AddTransactionScreen = ({ navigation }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [type, setType] = useState('expense'); // 'income' or 'expense'
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Others');
     const [loading, setLoading] = useState(false);
 
-    const [sound, setSound] = useState(null);
-
-    React.useEffect(() => {
-        return sound ? () => { sound.unloadAsync(); } : undefined;
-    }, [sound]);
+    const successAudio = useAudioPlayer({ uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' });
 
     const playSuccessSound = async () => {
         try {
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' }
-            );
-            setSound(sound);
-            await sound.playAsync();
+            successAudio.play();
         } catch (error) {
             console.log('Error playing sound:', error);
         }
@@ -76,10 +72,11 @@ const AddTransactionScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="close" size={28} color={Colors.text} />
+                        <Ionicons name="close" size={28} color={colors.text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Add Transaction</Text>
                 </View>
@@ -89,14 +86,14 @@ const AddTransactionScreen = ({ navigation }) => {
                         style={[styles.typeBtn, type === 'expense' && styles.typeBtnActiveExpense]}
                         onPress={() => setType('expense')}
                     >
-                        <Ionicons name="arrow-up-circle-outline" size={20} color={type === 'expense' ? Colors.white : Colors.error} />
+                        <Ionicons name="arrow-up-circle-outline" size={20} color={type === 'expense' ? colors.white : colors.error} />
                         <Text style={[styles.typeText, type === 'expense' && styles.typeTextActive]}>Expense</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.typeBtn, type === 'income' && styles.typeBtnActiveIncome]}
                         onPress={() => setType('income')}
                     >
-                        <Ionicons name="arrow-down-circle-outline" size={20} color={type === 'income' ? Colors.white : Colors.success} />
+                        <Ionicons name="arrow-down-circle-outline" size={20} color={type === 'income' ? colors.white : colors.success} />
                         <Text style={[styles.typeText, type === 'income' && styles.typeTextActive]}>Income</Text>
                     </TouchableOpacity>
                 </View>
@@ -130,7 +127,7 @@ const AddTransactionScreen = ({ navigation }) => {
                             value={amount}
                             onChangeText={setAmount}
                             placeholder="0.00"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             keyboardType="numeric"
                         />
                     </View>
@@ -142,7 +139,7 @@ const AddTransactionScreen = ({ navigation }) => {
                             value={description}
                             onChangeText={setDescription}
                             placeholder="What was this for?"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             multiline
                         />
                     </View>
@@ -159,7 +156,7 @@ const AddTransactionScreen = ({ navigation }) => {
                             end={{ x: 1, y: 0 }}
                         >
                             {loading ? (
-                                <ActivityIndicator color={Colors.white} />
+                                <ActivityIndicator color={colors.white} />
                             ) : (
                                 <Text style={styles.submitBtnText}>Add Transaction</Text>
                             )}
@@ -171,10 +168,10 @@ const AddTransactionScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         padding: Spacing.lg,
@@ -191,16 +188,16 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     typeSelector: {
         flexDirection: 'row',
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 6,
         marginBottom: Spacing.xxl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     typeBtn: {
         flex: 1,
@@ -211,18 +208,18 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     typeBtnActiveExpense: {
-        backgroundColor: Colors.error,
+        backgroundColor: colors.error,
     },
     typeBtnActiveIncome: {
-        backgroundColor: Colors.success,
+        backgroundColor: colors.success,
     },
     typeText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '700',
         marginLeft: 8,
     },
     typeTextActive: {
-        color: Colors.white,
+        color: colors.white,
     },
     form: {
         flex: 1,
@@ -231,20 +228,20 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.xl,
     },
     label: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 15,
         fontWeight: '700',
         marginBottom: Spacing.sm,
         marginLeft: 4,
     },
     input: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         fontSize: 17,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     textArea: {
         height: 120,
@@ -255,25 +252,25 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     categoryChip: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 20,
         marginRight: 10,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     categoryChipActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     categoryText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '600',
         fontSize: 14,
     },
     categoryTextActive: {
-        color: Colors.white,
+        color: colors.white,
         fontWeight: '700',
     },
     submitBtnWrapper: {
@@ -286,7 +283,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     submitBtnText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 18,
         fontWeight: '800',
     },

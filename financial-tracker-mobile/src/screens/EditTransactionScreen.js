@@ -5,17 +5,21 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     ScrollView,
     Alert,
     ActivityIndicator,
+    StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const EditTransactionScreen = ({ route, navigation }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const { transaction } = route.params;
     const [type, setType] = useState(transaction.credit > 0 ? 'income' : 'expense');
     const [amount, setAmount] = useState(
@@ -52,10 +56,11 @@ const EditTransactionScreen = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                        <Ionicons name="close" size={28} color={Colors.text} />
+                        <Ionicons name="close" size={28} color={colors.text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Edit Transaction</Text>
                 </View>
@@ -65,14 +70,14 @@ const EditTransactionScreen = ({ route, navigation }) => {
                         style={[styles.typeBtn, type === 'expense' && styles.typeBtnActiveExpense]}
                         onPress={() => setType('expense')}
                     >
-                        <Ionicons name="arrow-up-circle-outline" size={20} color={type === 'expense' ? Colors.white : Colors.error} />
+                        <Ionicons name="arrow-up-circle-outline" size={20} color={type === 'expense' ? colors.white : colors.error} />
                         <Text style={[styles.typeText, type === 'expense' && styles.typeTextActive]}>Expense</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.typeBtn, type === 'income' && styles.typeBtnActiveIncome]}
                         onPress={() => setType('income')}
                     >
-                        <Ionicons name="arrow-down-circle-outline" size={20} color={type === 'income' ? Colors.white : Colors.success} />
+                        <Ionicons name="arrow-down-circle-outline" size={20} color={type === 'income' ? colors.white : colors.success} />
                         <Text style={[styles.typeText, type === 'income' && styles.typeTextActive]}>Income</Text>
                     </TouchableOpacity>
                 </View>
@@ -85,7 +90,7 @@ const EditTransactionScreen = ({ route, navigation }) => {
                             value={amount}
                             onChangeText={setAmount}
                             placeholder="0.00"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             keyboardType="numeric"
                         />
                     </View>
@@ -97,7 +102,7 @@ const EditTransactionScreen = ({ route, navigation }) => {
                             value={description}
                             onChangeText={setDescription}
                             placeholder="What was this for?"
-                            placeholderTextColor={Colors.textMuted}
+                            placeholderTextColor={colors.textMuted}
                             multiline
                         />
                     </View>
@@ -114,7 +119,7 @@ const EditTransactionScreen = ({ route, navigation }) => {
                             end={{ x: 1, y: 0 }}
                         >
                             {loading ? (
-                                <ActivityIndicator color={Colors.white} />
+                                <ActivityIndicator color={colors.white} />
                             ) : (
                                 <Text style={styles.submitBtnText}>Update Transaction</Text>
                             )}
@@ -126,10 +131,10 @@ const EditTransactionScreen = ({ route, navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         padding: Spacing.lg,
@@ -146,16 +151,16 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     typeSelector: {
         flexDirection: 'row',
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 6,
         marginBottom: Spacing.xxl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     typeBtn: {
         flex: 1,
@@ -166,18 +171,18 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     typeBtnActiveExpense: {
-        backgroundColor: Colors.error,
+        backgroundColor: colors.error,
     },
     typeBtnActiveIncome: {
-        backgroundColor: Colors.success,
+        backgroundColor: colors.success,
     },
     typeText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '700',
         marginLeft: 8,
     },
     typeTextActive: {
-        color: Colors.white,
+        color: colors.white,
     },
     form: {
         flex: 1,
@@ -186,20 +191,20 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.xl,
     },
     label: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 15,
         fontWeight: '700',
         marginBottom: Spacing.sm,
         marginLeft: 4,
     },
     input: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         fontSize: 17,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     textArea: {
         height: 120,
@@ -215,7 +220,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     submitBtnText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 18,
         fontWeight: '800',
     },

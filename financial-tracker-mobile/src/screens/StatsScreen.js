@@ -3,19 +3,22 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     ActivityIndicator,
     StatusBar,
     ScrollView,
     Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { Colors, Spacing } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const StatsScreen = () => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [categoryData, setCategoryData] = useState([]);
     const [budgets, setBudgets] = useState([]);
     const [insights, setInsights] = useState(null);
@@ -47,7 +50,7 @@ const StatsScreen = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Analyzing your finances...</Text>
             </View>
         );
@@ -57,7 +60,7 @@ const StatsScreen = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Insights</Text>
             </View>
@@ -91,7 +94,7 @@ const StatsScreen = () => {
                                     </View>
                                     <View style={styles.progressBar}>
                                         <LinearGradient
-                                            colors={['#6366f1', '#8b5cf6']}
+                                            colors={isDark ? ['#6366f1', '#8b5cf6'] : ['#4f46e5', '#6366f1']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 0 }}
                                             style={[styles.progressFill, { width: `${percent}%` }]}
@@ -114,7 +117,7 @@ const StatsScreen = () => {
                                     <Text style={styles.budgetName}>{budget.category}</Text>
                                     <Text style={[
                                         styles.budgetPercent,
-                                        { color: budget.percent > 100 ? Colors.error : Colors.success }
+                                        { color: budget.percent > 100 ? colors.error : colors.success }
                                     ]}>
                                         {budget.percent}%
                                     </Text>
@@ -124,7 +127,7 @@ const StatsScreen = () => {
                                         styles.budgetFill,
                                         {
                                             width: `${Math.min(budget.percent, 100)}%`,
-                                            backgroundColor: budget.percent > 100 ? Colors.error : Colors.success
+                                            backgroundColor: budget.percent > 100 ? colors.error : colors.success
                                         }
                                     ]} />
                                 </View>
@@ -137,19 +140,19 @@ const StatsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     loadingText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 12,
         fontWeight: '800',
         textTransform: 'uppercase',
@@ -160,19 +163,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderBottomColor: colors.border,
     },
     headerTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     content: {
         padding: Spacing.lg,
         paddingBottom: 100,
     },
     insightCard: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: Spacing.lg,
         marginBottom: Spacing.xl,
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     insightText: {
         fontSize: 14,
         lineHeight: 22,
-        color: Colors.text,
+        color: colors.text,
         fontWeight: '600',
     },
     section: {
@@ -202,23 +205,23 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.lg,
     },
     emptyText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 14,
         fontWeight: '600',
         textAlign: 'center',
         paddingVertical: Spacing.xl,
     },
     categoryItem: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     categoryHeader: {
         flexDirection: 'row',
@@ -228,17 +231,17 @@ const styles = StyleSheet.create({
     categoryName: {
         fontSize: 16,
         fontWeight: '700',
-        color: Colors.text,
+        color: colors.text,
     },
     categoryAmount: {
         fontSize: 14,
         fontWeight: '800',
-        color: Colors.primary,
+        color: colors.primary,
         fontFamily: 'monospace',
     },
     progressBar: {
         height: 8,
-        backgroundColor: Colors.border,
+        backgroundColor: colors.border,
         borderRadius: 4,
         overflow: 'hidden',
         marginBottom: 8,
@@ -250,16 +253,16 @@ const styles = StyleSheet.create({
     percentText: {
         fontSize: 11,
         fontWeight: '700',
-        color: Colors.textMuted,
+        color: colors.textMuted,
         textAlign: 'right',
     },
     budgetItem: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     budgetHeader: {
         flexDirection: 'row',
@@ -269,7 +272,7 @@ const styles = StyleSheet.create({
     budgetName: {
         fontSize: 16,
         fontWeight: '700',
-        color: Colors.text,
+        color: colors.text,
     },
     budgetPercent: {
         fontSize: 14,
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
     },
     budgetBar: {
         height: 6,
-        backgroundColor: Colors.border,
+        backgroundColor: colors.border,
         borderRadius: 3,
         overflow: 'hidden',
     },

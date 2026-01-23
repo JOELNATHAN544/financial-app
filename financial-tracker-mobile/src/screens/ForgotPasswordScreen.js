@@ -14,8 +14,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
+import { StatusBar } from 'react-native';
 
 const ForgotPasswordScreen = ({ navigation }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [step, setStep] = useState(1); // 1: Request, 2: Reset
     const [identifier, setIdentifier] = useState('');
     const [code, setCode] = useState('');
@@ -79,6 +83,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                 <View style={styles.cardContainer}>
                     <Text style={styles.title}>
@@ -98,7 +103,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                 value={identifier}
                                 onChangeText={setIdentifier}
                                 placeholder="name@example.com"
-                                placeholderTextColor={Colors.textMuted}
+                                placeholderTextColor={colors.textMuted}
                                 autoCapitalize="none"
                             />
                             <TouchableOpacity
@@ -112,7 +117,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                 >
-                                    {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.btnText}>Send Reset Code</Text>}
+                                    {isLoading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.btnText}>Send Reset Code</Text>}
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -125,7 +130,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                     value={code}
                                     onChangeText={setCode}
                                     placeholder="000000"
-                                    placeholderTextColor={Colors.textMuted}
+                                    placeholderTextColor={colors.textMuted}
                                     keyboardType="number-pad"
                                     maxLength={6}
                                 />
@@ -137,7 +142,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                     value={newPassword}
                                     onChangeText={setNewPassword}
                                     placeholder="........"
-                                    placeholderTextColor={Colors.textMuted}
+                                    placeholderTextColor={colors.textMuted}
                                     secureTextEntry
                                     autoCapitalize="none"
                                 />
@@ -149,7 +154,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
                                     placeholder="........"
-                                    placeholderTextColor={Colors.textMuted}
+                                    placeholderTextColor={colors.textMuted}
                                     secureTextEntry
                                     autoCapitalize="none"
                                 />
@@ -165,7 +170,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                 >
-                                    {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.btnText}>Update Password</Text>}
+                                    {isLoading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.btnText}>Update Password</Text>}
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -184,10 +189,10 @@ const ForgotPasswordScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     scrollContainer: {
         flexGrow: 1,
@@ -195,13 +200,13 @@ const styles = StyleSheet.create({
         padding: Spacing.lg,
     },
     cardContainer: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 24,
         padding: Spacing.xl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
         alignItems: 'center',
-        shadowColor: Colors.black,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.3,
         shadowRadius: 20,
@@ -210,13 +215,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         textAlign: 'center',
         marginBottom: Spacing.xs,
     },
     subtitle: {
         fontSize: 14,
-        color: Colors.textMuted,
+        color: colors.textMuted,
         textAlign: 'center',
         marginBottom: Spacing.xl,
     },
@@ -227,18 +232,18 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 13,
         fontWeight: '600',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.sm,
         marginLeft: 4,
     },
     input: {
-        backgroundColor: Colors.inputBg,
+        backgroundColor: colors.inputBg,
         borderRadius: 12,
         padding: Spacing.md,
         fontSize: 15,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     primaryBtnWrapper: {
         width: '100%',
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     btnText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 16,
         fontWeight: '700',
     },
@@ -260,7 +265,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backBtnText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 13,
         fontWeight: '600',
         textDecorationLine: 'underline',

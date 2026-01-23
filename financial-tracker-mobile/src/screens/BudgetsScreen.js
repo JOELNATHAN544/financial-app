@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     ActivityIndicator,
     Alert,
     FlatList,
@@ -12,11 +11,13 @@ import {
     TouchableOpacity,
     ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const CATEGORIES = [
     'Food', 'Transport', 'Rent', 'Utilities', 'Entertainment',
@@ -24,6 +25,8 @@ const CATEGORIES = [
 ];
 
 const BudgetsScreen = () => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     const [budgets, setBudgets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ category: '', amount: '' });
@@ -187,16 +190,16 @@ const BudgetsScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -205,18 +208,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xl,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderBottomColor: colors.border,
     },
     headerTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
     },
     addBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: Colors.primary,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -225,24 +228,24 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     formCard: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: Spacing.lg,
         marginBottom: Spacing.xl,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     formTitle: {
         fontSize: 20,
         fontWeight: '800',
-        color: Colors.text,
+        color: colors.text,
         marginBottom: Spacing.lg,
     },
     inputGroup: {
         marginBottom: Spacing.lg,
     },
     label: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 14,
         fontWeight: '700',
         marginBottom: Spacing.sm,
@@ -258,31 +261,31 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 12,
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
         marginRight: 8,
     },
     categoryChipActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     categoryText: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontWeight: '700',
         fontSize: 13,
     },
     categoryTextActive: {
-        color: Colors.white,
+        color: colors.white,
     },
     input: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 16,
         fontSize: 16,
-        color: Colors.text,
+        color: colors.text,
         borderWidth: 1.5,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     submitBtn: {
         borderRadius: 16,
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     submitText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 16,
         fontWeight: '800',
     },
@@ -302,13 +305,13 @@ const styles = StyleSheet.create({
         marginTop: 80,
     },
     emptyText: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 16,
         fontWeight: '700',
         marginTop: 16,
     },
     emptyHint: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 13,
         marginTop: 8,
     },
@@ -316,11 +319,11 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     budgetCard: {
-        backgroundColor: Colors.cardBg,
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: Spacing.lg,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: colors.border,
     },
     budgetHeader: {
         flexDirection: 'row',
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     budgetCategory: {
-        color: Colors.text,
+        color: colors.text,
         fontSize: 18,
         fontWeight: '800',
     },
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     },
     progressBar: {
         height: 8,
-        backgroundColor: Colors.border,
+        backgroundColor: colors.border,
         borderRadius: 4,
         overflow: 'hidden',
         marginBottom: 12,
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     budgetAmount: {
-        color: Colors.textMuted,
+        color: colors.textMuted,
         fontSize: 11,
         fontWeight: '700',
         fontFamily: 'monospace',

@@ -4,16 +4,19 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Gradients } from '../constants/Theme';
+import { useTheme } from '../context/ThemeContext';
 
 const WelcomeScreen = ({ navigation }) => {
+    const { colors, isDark } = useTheme();
+    const styles = getStyles(colors, isDark);
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
             <LinearGradient
                 colors={Gradients.premium}
                 style={styles.background}
@@ -52,10 +55,10 @@ const WelcomeScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: colors.background,
     },
     background: {
         flex: 1,
@@ -85,12 +88,12 @@ const styles = StyleSheet.create({
     logoText: {
         fontSize: 50,
         fontWeight: '800',
-        color: Colors.white,
+        color: colors.white,
     },
     brandName: {
         fontSize: 42,
         fontWeight: '900',
-        color: Colors.white,
+        color: colors.white,
         letterSpacing: -1,
     },
     brandTagline: {
@@ -104,19 +107,19 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     primaryBtn: {
-        backgroundColor: Colors.white,
+        backgroundColor: colors.white,
         height: 60,
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: Colors.black,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 10,
         elevation: 5,
     },
     primaryBtnText: {
-        color: Colors.primary,
+        color: colors.primary,
         fontSize: 18,
         fontWeight: '800',
     },
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     linkHighlight: {
-        color: Colors.white,
+        color: colors.white,
         fontWeight: '800',
         textDecorationLine: 'underline',
     },
