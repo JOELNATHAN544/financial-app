@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
@@ -22,19 +22,21 @@ import VerifyEmailScreen from './src/screens/VerifyEmailScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import { api } from './src/api';
-import { Colors } from './src/constants/Theme';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs({ onLogout }) {
+  const { colors, isDark } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.cardBg,
-          borderTopColor: Colors.border,
+          backgroundColor: colors.cardBg,
+          borderTopColor: colors.border,
           height: 70,
           paddingBottom: 12,
           paddingTop: 8,
@@ -43,11 +45,11 @@ function MainTabs({ onLogout }) {
           elevation: 20,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -10 },
-          shadowOpacity: 0.3,
+          shadowOpacity: 0.1,
           shadowRadius: 10,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (focused) size = 26;
@@ -83,10 +85,11 @@ function MainTabs({ onLogout }) {
   );
 }
 
-export default function App() {
+function RootNavigator() {
+  const { colors, isDark, loading } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [jwtToken, setJwtToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -99,7 +102,7 @@ export default function App() {
       } catch (error) {
         console.error('Failed to restore auth session:', error);
       } finally {
-        setIsLoading(false);
+        setAuthLoading(false);
       }
     };
 
@@ -117,18 +120,30 @@ export default function App() {
     setJwtToken(null);
   };
 
-  if (isLoading) {
+  if (loading || authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.background,
+      card: colors.cardBg,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
+
   return (
-    <NavigationContainer>
-      <StatusBar style="light" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer theme={navTheme}>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: colors.background } }}>
         {!isAuthenticated ? (
           <>
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -153,5 +168,13 @@ export default function App() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RootNavigator />
+    </ThemeProvider>
   );
 }
