@@ -28,11 +28,18 @@ const AddTransactionScreen = ({ navigation }) => {
     const [category, setCategory] = useState('Others');
     const [loading, setLoading] = useState(false);
 
+    const [sound, setSound] = useState(null);
+
+    React.useEffect(() => {
+        return sound ? () => { sound.unloadAsync(); } : undefined;
+    }, [sound]);
+
     const playSuccessSound = async () => {
         try {
             const { sound } = await Audio.Sound.createAsync(
-                { uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' } // Success chime
+                { uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' }
             );
+            setSound(sound);
             await sound.playAsync();
         } catch (error) {
             console.log('Error playing sound:', error);
